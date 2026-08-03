@@ -1,0 +1,12 @@
+{
+  "app.name": "DrukAgriLink",
+  "nav.dashboard": "Dashboard",
+  "nav.harvests": "My harvests",
+  "nav.orders": "Orders",
+  "action.new_harvest": "New harvest",
+  "action.create_order": "Create order",
+  "status.available": "Available",
+  "status.pending": "Pending",
+  "status.paid": "Paid",
+  "currency.symbol": "Nu."
+}

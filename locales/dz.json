@@ -1,0 +1,13 @@
+{
+  "_note": "REVIEW REQUIRED — do not ship. All values are placeholders pending verified Dzongkha translation by a qualified reviewer.",
+  "app.name": "[REVIEW: DrukAgriLink]",
+  "nav.dashboard": "[REVIEW: Dashboard]",
+  "nav.harvests": "[REVIEW: My harvests]",
+  "nav.orders": "[REVIEW: Orders]",
+  "action.new_harvest": "[REVIEW: New harvest]",
+  "action.create_order": "[REVIEW: Create order]",
+  "status.available": "[REVIEW: Available]",
+  "status.pending": "[REVIEW: Pending]",
+  "status.paid": "[REVIEW: Paid]",
+  "currency.symbol": "Nu."
+}
