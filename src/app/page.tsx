@@ -11,7 +11,7 @@ export default function Landing() {
   return (
     <main>
       <section className="bg-forest text-white">
-        <div className="mx-auto max-w-4xl px-4 py-16">
+        <div className="mx-auto max-w-4xl px-4 py-20 sm:py-28">
           <p className="mb-3 inline-block rounded-full bg-white/10 px-3 py-1 text-xs">Bhutan · farm to buyer</p>
           <h1 className="max-w-2xl text-4xl font-bold leading-tight sm:text-5xl">
             Combine harvests. Reach buyers. Move produce together.
@@ -26,8 +26,8 @@ export default function Landing() {
           </div>
         </div>
       </section>
-      <section className="mx-auto max-w-4xl px-4 py-14">
-        <div className="grid gap-4 sm:grid-cols-2">
+      <section className="mx-auto max-w-4xl px-4 py-16 sm:py-20">
+        <div className="grid gap-6 sm:grid-cols-2">
           {features.map((f) => (
             <div key={f.title} className="card">
               <f.icon className="text-forest" />
