@@ -34,7 +34,7 @@ export default function Landing() {
             <div
               key={f.title}
               className="card group animate-fade-up"
-              style={{ animationDelay: `${i * 150}ms` }}
+              style={{ animationDelay: `${i * 300}ms` }}
             >
               <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-forest-light text-forest transition-all duration-200 group-hover:bg-forest group-hover:text-white group-hover:scale-110">
                 <f.icon className="h-6 w-6" />
