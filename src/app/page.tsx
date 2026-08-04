@@ -28,8 +28,12 @@ export default function Landing() {
       </section>
       <section className="mx-auto max-w-4xl px-4 py-16 sm:py-20">
         <div className="grid gap-6 sm:grid-cols-2">
-          {features.map((f) => (
-            <div key={f.title} className="card">
+          {features.map((f, i) => (
+           <div
+             key={f.title}
+             className="card animate-fade-up"
+             style={{ animationDelay: `${i * 400}ms` }}
+          >
               <f.icon className="text-forest" />
               <h3 className="mt-3 font-semibold text-forest-dark">{f.title}</h3>
               <p className="mt-1 text-sm text-gray-600">{f.body}</p>
