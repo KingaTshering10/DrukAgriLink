@@ -7,7 +7,8 @@ body { background: #faf7f0; color: #1a2b22; }
 
 @layer components {
   .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold
-    transition min-h-[44px] focus:outline-none focus:ring-2 focus:ring-forest/40; }
+    transition-all duration-200 min-h-[44px] focus:outline-none focus:ring-2 focus:ring-forest/40
+  hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]; }
   .btn-primary { @apply btn bg-forest text-white hover:bg-forest-dark; }
   .btn-ghost { @apply btn border border-forest/20 bg-white text-forest hover:bg-forest-light; }
   .card { @apply rounded-2xl border border-black/5 bg-white p-6 shadow-sm
