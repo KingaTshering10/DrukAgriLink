@@ -10,6 +10,11 @@ import { formatNu } from "@/lib/finance/calc";
 export default async function BuyerDashboard() {
   const profile = await requireRole("buyer");
   const supabase = createClient();
+
+  const { data: orgs } = await supabase
+    .from("buyer_organizations").select("id").eq("owner_id", profile.id);
+  const hasOrg = (orgs?.length ?? 0) > 0;
+
   const { data: orders } = await supabase
     .from("buyer_orders")
     .select("id,required_qty,unit,offered_price,required_delivery_date,status,products(name),buyer_organizations!inner(owner_id)")
@@ -22,8 +27,24 @@ export default async function BuyerDashboard() {
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-forest-dark">Procurement</h1>
-          <Link href="/buyer/orders/new" className="btn-primary"><Plus size={16} /> New order</Link>
+          <div className="flex gap-2">
+            <Link href="/buyer/organization/new" className="btn-ghost"><Plus size={16} /> New organization</Link>
+            <Link href="/buyer/orders/new" className="btn-primary"><Plus size={16} /> New order</Link>
+          </div>
         </div>
+
+        {!hasOrg && (
+          <div className="card border-saffron/40 bg-saffron/10">
+            <p className="font-semibold text-forest-dark">Set up your organization first</p>
+            <p className="mt-1 text-sm text-gray-600">
+              You need a buyer organization before creating orders.
+            </p>
+            <Link href="/buyer/organization/new" className="btn-primary mt-3 inline-flex">
+              <Plus size={16} /> Create organization
+            </Link>
+          </div>
+        )}
+
         {orders?.length ? (
           <div className="space-y-2">
             {orders.map((o: any) => (
