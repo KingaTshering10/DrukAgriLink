@@ -23,7 +23,7 @@ export default function Landing() {
             buyers, and coordinate shared transport across Bhutan.
           </p>
           <div className="mt-8 flex flex-wrap gap-3 animate-fade-up" style={{ animationDelay: "400ms" }}>
-            <Link href="/register" className="btn bg-saffron text-forest-dark hover:brightness-95">Get started</Link>
+            <Link href="/You may register" className="btn bg-saffron text-forest-dark hover:brightness-95">Get started</Link>
             <Link href="/login" className="btn border border-white/30 text-white hover:bg-white/10">Log in</Link>
           </div>
         </div>
