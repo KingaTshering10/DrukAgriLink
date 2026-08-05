@@ -16,7 +16,7 @@ export default function Landing() {
             Bhutan · farm to buyer
           </p>
           <h1 className="max-w-2xl text-4xl font-bold leading-tight sm:text-5xl animate-fade-up" style={{ animationDelay: "100ms" }}>
-            Combine harvests. Reach buyers. Move produce together. Happiness at its peak.
+            Combine harvests. Reach buyers. Move produce together. Happiness at its.
           </h1>
           <p className="mt-4 max-w-xl text-white/80 animate-fade-up" style={{ animationDelay: "250ms" }}>
             DrukAgriLink helps small farmers pool their produce, connect with institutional
