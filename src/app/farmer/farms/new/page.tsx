@@ -1,7 +1,7 @@
 "use client";
 import { useFormState } from "react-dom";
 import Link from "next/link";
-import { DZONGKHAGS } from "@/lib/constants/bhutan";
+import { LocationPicker } from "@/components/LocationPicker";
 import { createFarm } from "./actions";
 
 const initial = { error: "" };
@@ -16,21 +16,14 @@ export default function NewFarm() {
           <label className="label">Farm name</label>
           <input name="name" className="input" placeholder="e.g. Kinga's Farm" required />
         </div>
-        <div>
-          <label className="label">Dzongkhag</label>
-          <select name="dzongkhag" className="input">
-            <option value="">Select…</option>
-            {DZONGKHAGS.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="label">Gewog</label>
-          <input name="gewog" className="input" placeholder="e.g. Bongo" />
-        </div>
+
+        <LocationPicker required />
+
         <div>
           <label className="label">Size (acres)</label>
           <input name="size_acres" type="number" step="0.1" min="0" className="input" placeholder="e.g. 2.5" />
         </div>
+
         {state?.error && <p className="text-sm text-crimson">{state.error}</p>}
         <div className="flex gap-3">
           <button type="submit" className="btn-primary">Create farm</button>
