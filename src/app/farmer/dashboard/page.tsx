@@ -10,6 +10,11 @@ import { formatNu } from "@/lib/finance/calc";
 export default async function FarmerDashboard() {
   const profile = await requireRole("farmer");
   const supabase = createClient();
+
+  const { data: farms } = await supabase
+    .from("farms").select("id").eq("farmer_id", profile.id);
+  const hasFarm = (farms?.length ?? 0) > 0;
+
   const { data: listings } = await supabase
     .from("harvest_listings")
     .select("id,forecast_qty,available_qty,unit,min_price,status,products(name)")
@@ -28,8 +33,23 @@ export default async function FarmerDashboard() {
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-forest-dark">Kuzuzangpo, {profile.full_name.split(" ")[0]}</h1>
-          <Link href="/farmer/harvests/new" className="btn-primary"><Plus size={16} /> New harvest</Link>
+          <div className="flex gap-2">
+            <Link href="/farmer/farms/new" className="btn-ghost"><Plus size={16} /> New farm</Link>
+            <Link href="/farmer/harvests/new" className="btn-primary"><Plus size={16} /> New harvest</Link>
+          </div>
         </div>
+
+        {!hasFarm && (
+          <div className="card border-saffron/40 bg-saffron/10">
+            <p className="font-semibold text-forest-dark">Set up your farm first</p>
+            <p className="mt-1 text-sm text-gray-600">
+              You need a farm before publishing harvest listings.
+            </p>
+            <Link href="/farmer/farms/new" className="btn-primary mt-3 inline-flex">
+              <Plus size={16} /> Create farm
+            </Link>
+          </div>
+        )}
 
         <section>
           <h2 className="mb-2 text-sm font-semibold text-gray-500">Recent harvests</h2>
