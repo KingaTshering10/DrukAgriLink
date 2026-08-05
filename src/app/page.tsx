@@ -46,7 +46,7 @@ export default function Landing() {
         </div>
       </section>
       <footer className="border-t border-black/5 py-8 text-center text-sm text-gray-500">
-        Developed and maintained by DrukAgriLink (Kinga Tshering) · prices shown as Nu. (BTN)
+        Developed and maintained by DrukAgriLink (Kinga Tshering) · Prices shown as Nu. (BTN)
       </footer>
     </main>
   );
