@@ -3,7 +3,7 @@ import { Sprout, Users, Truck, HandCoins } from "lucide-react";
 
 export default function Landing() {
   const features = [
-    { icon: Sprout, title: "List your vegetables", body: "Farmers publish available produce with price, grade and location." },
+    { icon: Sprout, title: "List your crops", body: "Farmers publish available produce with price, grade and location." },
     { icon: Users, title: "Pool your supplies", body: "Coordinators pool small harvests to meet larger buyer orders." },
     { icon: Truck, title: "Share Numkhor", body: "Assign vehicles and track collection stop by stop." },
     { icon: HandCoins, title: "Stop payments", body: "Every deduction shown; net amount due per farmer, no hidden fees." },
