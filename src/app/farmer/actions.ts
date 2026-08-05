@@ -12,9 +12,11 @@ export async function createHarvest(_prev: unknown, formData: FormData) {
     return { error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
   const supabase = createClient();
+  const chiwog = String(formData.get("chiwog") ?? "").trim() || null;
   // RLS also enforces ownership; we set farmer_id from the session, never the form.
   const { error } = await supabase.from("harvest_listings").insert({
     ...parsed.data,
+    chiwog,
     farmer_id: profile.id,
   });
   if (error) return { error: error.message };
