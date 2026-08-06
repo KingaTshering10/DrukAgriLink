@@ -33,7 +33,11 @@ export default async function MyHarvests() {
               <tbody>
                 {data.map((l: any) => (
                   <tr key={l.id} className="border-t border-black/5">
-                    <td className="p-3 font-medium">{l.products?.name}</td>
+                    <td className="p-3 font-medium">
+                      <Link href={`/farmer/harvests/${l.id}`} className="text-forest hover:underline">
+                        {l.products?.name}
+                      </Link>
+                    </td>
                     <td className="p-3">{l.available_qty}/{l.forecast_qty} {l.unit}</td>
                     <td className="p-3">{formatNu(l.min_price)}</td>
                     <td className="p-3">{l.quality_grade ?? "—"}</td>
