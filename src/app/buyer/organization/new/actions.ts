@@ -10,6 +10,9 @@ export async function createOrganization(_prev: unknown, formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const contact_phone = String(formData.get("contact_phone") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
+  const dzongkhag = String(formData.get("dzongkhag") ?? "").trim();
+  const gewog = String(formData.get("gewog") ?? "").trim();
+  const chiwog = String(formData.get("chiwog") ?? "").trim();
 
   if (!name) return { error: "Organization name is required." };
 
@@ -19,6 +22,9 @@ export async function createOrganization(_prev: unknown, formData: FormData) {
     name,
     contact_phone: contact_phone || null,
     address: address || null,
+    dzongkhag: dzongkhag || null,
+    gewog: gewog || null,
+    chiwog: chiwog || null,
   });
   if (error) return { error: error.message };
 
