@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatNu } from "@/lib/finance/calc";
+import { DeleteButton } from "./DeleteButton";
 
 export default async function OrderDetail({ params }: { params: { id: string } }) {
   const profile = await requireRole("buyer");
@@ -50,7 +51,13 @@ export default async function OrderDetail({ params }: { params: { id: string } }
           ))}
         </div>
 
-        <Link href="/buyer/dashboard" className="btn-ghost">← Back to orders</Link>
+        <div className="flex items-center justify-between">
+          <Link href="/buyer/dashboard" className="btn-ghost">← Back to orders</Link>
+          <div className="flex gap-2">
+            <Link href={`/buyer/orders/${o.id}/edit`} className="btn-ghost">Edit order</Link>
+            <DeleteButton orderId={o.id} />
+          </div>
+        </div>
       </main>
     </>
   );
