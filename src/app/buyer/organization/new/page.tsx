@@ -1,6 +1,7 @@
 "use client";
 import { useFormState } from "react-dom";
 import Link from "next/link";
+import { LocationPicker } from "@/components/LocationPicker";
 import { createOrganization } from "./actions";
 
 const initial = { error: "" };
@@ -23,6 +24,9 @@ export default function NewOrganization() {
           <label className="label">Address</label>
           <input name="address" className="input" placeholder="e.g. Norzin Lam, Thimphu" />
         </div>
+
+        <LocationPicker />
+
         {state?.error && <p className="text-sm text-crimson">{state.error}</p>}
         <div className="flex gap-3">
           <button type="submit" className="btn-primary">Create organization</button>
