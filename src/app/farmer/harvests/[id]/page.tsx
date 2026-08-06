@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatNu } from "@/lib/finance/calc";
+import { DeleteButton } from "./DeleteButton";
 
 export default async function HarvestDetail({ params }: { params: { id: string } }) {
   const profile = await requireRole("farmer");
@@ -51,7 +52,13 @@ export default async function HarvestDetail({ params }: { params: { id: string }
           ))}
         </div>
 
-        <Link href="/farmer/harvests" className="btn-ghost">← Back to harvests</Link>
+        <div className="flex items-center justify-between">
+          <Link href="/farmer/harvests" className="btn-ghost">← Back to harvests</Link>
+          <div className="flex gap-2">
+            <Link href={`/farmer/harvests/${h.id}/edit`} className="btn-ghost">Edit harvest</Link>
+            <DeleteButton harvestId={h.id} />
+          </div>
+        </div>
       </main>
     </>
   );
