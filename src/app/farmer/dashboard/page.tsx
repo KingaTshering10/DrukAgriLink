@@ -56,13 +56,17 @@ export default async function FarmerDashboard() {
           {listings?.length ? (
             <div className="space-y-2">
               {listings.map((l: any) => (
-                <div key={l.id} className="card flex items-center justify-between">
+                <Link
+                  key={l.id}
+                  href={`/farmer/harvests/${l.id}`}
+                  className="card flex items-center justify-between transition hover:shadow-md"
+                >
                   <div>
                     <p className="font-semibold text-forest-dark">{l.products?.name}</p>
                     <p className="text-sm text-gray-500">{l.available_qty}/{l.forecast_qty} {l.unit} · {formatNu(l.min_price)}/{l.unit}</p>
                   </div>
                   <StatusBadge status={l.status} />
-                </div>
+                </Link>
               ))}
             </div>
           ) : <Empty title="No harvests yet" hint="Publish your first listing to reach buyers." />}
