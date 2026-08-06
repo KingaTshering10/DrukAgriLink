@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/guard";
 import { summarizeMatch } from "@/lib/matching/match";
+import { notify } from "@/lib/notify";
 import type { AllocationLine } from "@/lib/validation/schemas";
 
 // Create a proposal from an order + selected allocation lines (JSON in the form).
@@ -42,6 +43,15 @@ export async function createProposal(_prev: unknown, formData: FormData) {
   }));
   await supabase.from("match_allocations").insert(rows);
   await supabase.from("buyer_orders").update({ status: "proposed" }).eq("id", orderId);
+
+  // Notify each farmer that they've received a match proposal.
+  for (const l of lines) {
+    await notify(
+      l.farmer_id,
+      "New match proposal",
+      `A coordinator proposed ${l.allocated_qty} units of your harvest at Nu. ${l.unit_price}/unit.`
+    );
+  }
 
   revalidatePath("/coordinator/dashboard");
   redirect("/coordinator/dashboard");

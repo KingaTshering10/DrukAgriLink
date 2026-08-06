@@ -11,6 +11,12 @@ export default async function FarmerDashboard() {
   const profile = await requireRole("farmer");
   const supabase = createClient();
 
+  const { count: unread } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.id)
+    .eq("read", false);
+
   const { data: farms } = await supabase
     .from("farms").select("id").eq("farmer_id", profile.id);
   const hasFarm = (farms?.length ?? 0) > 0;
@@ -29,7 +35,7 @@ export default async function FarmerDashboard() {
 
   return (
     <>
-      <AppHeader name={profile.full_name} role="Farmer" />
+      <AppHeader name={profile.full_name} role="Farmer" unread={unread ?? 0} />
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-forest-dark">Kuzuzangpo, {profile.full_name.split(" ")[0]}</h1>
