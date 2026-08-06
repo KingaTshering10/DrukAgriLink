@@ -48,13 +48,17 @@ export default async function BuyerDashboard() {
         {orders?.length ? (
           <div className="space-y-2">
             {orders.map((o: any) => (
-              <div key={o.id} className="card flex items-center justify-between">
+              <Link
+                key={o.id}
+                href={`/buyer/orders/${o.id}`}
+                className="card flex items-center justify-between transition hover:shadow-md"
+              >
                 <div>
                   <p className="font-semibold text-forest-dark">{o.products?.name} · {o.required_qty} {o.unit}</p>
                   <p className="text-sm text-gray-500">Offer {formatNu(o.offered_price)}/{o.unit} · by {o.required_delivery_date}</p>
                 </div>
                 <StatusBadge status={o.status} />
-              </div>
+              </Link>
             ))}
           </div>
         ) : <Empty title="No orders yet" hint="Create a procurement order to receive proposals." />}

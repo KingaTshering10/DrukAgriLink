@@ -1,0 +1,57 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { requireRole } from "@/lib/auth/guard";
+import { createClient } from "@/lib/supabase/server";
+import { AppHeader } from "@/components/AppHeader";
+import { StatusBadge } from "@/components/ui/StatusBadge";
+import { formatNu } from "@/lib/finance/calc";
+
+export default async function OrderDetail({ params }: { params: { id: string } }) {
+  const profile = await requireRole("buyer");
+  const supabase = createClient();
+
+  const { data: order } = await supabase
+    .from("buyer_orders")
+    .select("id,required_qty,unit,offered_price,required_delivery_date,delivery_location,min_quality_grade,packaging,notes,status,products(name),buyer_organizations!inner(name,owner_id)")
+    .eq("id", params.id)
+    .eq("buyer_organizations.owner_id", profile.id)
+    .single();
+
+  if (!order) notFound();
+
+  const o = order as any;
+  const rows: [string, string][] = [
+    ["Product", o.products?.name ?? "—"],
+    ["Organization", o.buyer_organizations?.name ?? "—"],
+    ["Required quantity", `${o.required_qty} ${o.unit}`],
+    ["Offered price", `${formatNu(o.offered_price)} / ${o.unit}`],
+    ["Delivery by", o.required_delivery_date ?? "—"],
+    ["Delivery location", o.delivery_location ?? "—"],
+    ["Minimum grade", o.min_quality_grade ?? "—"],
+    ["Packaging", o.packaging ?? "—"],
+    ["Notes", o.notes ?? "—"],
+  ];
+
+  return (
+    <>
+      <AppHeader name={profile.full_name} role="Buyer" />
+      <main className="mx-auto max-w-lg space-y-4 px-4 py-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-bold text-forest-dark">Order details</h1>
+          <StatusBadge status={o.status} />
+        </div>
+
+        <div className="card divide-y divide-black/5">
+          {rows.map(([k, v]) => (
+            <div key={k} className="flex justify-between gap-4 py-2 text-sm">
+              <span className="text-gray-500">{k}</span>
+              <span className="text-right font-medium text-forest-dark">{v}</span>
+            </div>
+          ))}
+        </div>
+
+        <Link href="/buyer/dashboard" className="btn-ghost">← Back to orders</Link>
+      </main>
+    </>
+  );
+}
