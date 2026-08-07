@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getProfile } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
@@ -7,7 +8,7 @@ import { markAllRead } from "./actions";
 export default async function Notifications() {
   const profile = await getProfile();
   const supabase = createClient();
-  const { data } = await supabase.from("notifications").select("id,title,body,read,created_at")
+  const { data } = await supabase.from("notifications").select("id,title,body,read,link,created_at")
     .eq("user_id", profile.id).order("created_at", { ascending: false });
 
   const unread = (data ?? []).filter((n: any) => !n.read).length;
@@ -24,12 +25,21 @@ export default async function Notifications() {
             </form>
           )}
         </div>
-        {data?.length ? data.map((n: any) => (
-          <div key={n.id} className={`card ${n.read ? "opacity-70" : ""}`}>
-            <p className="font-semibold text-forest-dark">{n.title}</p>
-            <p className="text-sm text-gray-500">{n.body}</p>
-          </div>
-        )) : <Empty title="No notifications" />}
+        {data?.length ? data.map((n: any) => {
+          const inner = (
+            <>
+              <p className="font-semibold text-forest-dark">{n.title}</p>
+              <p className="text-sm text-gray-500">{n.body}</p>
+            </>
+          );
+          return n.link ? (
+            <Link key={n.id} href={n.link} className={`card block transition hover:shadow-md ${n.read ? "opacity-70" : ""}`}>
+              {inner}
+            </Link>
+          ) : (
+            <div key={n.id} className={`card ${n.read ? "opacity-70" : ""}`}>{inner}</div>
+          );
+        }) : <Empty title="No notifications" />}
       </main>
     </>
   );
