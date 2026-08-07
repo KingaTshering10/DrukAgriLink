@@ -48,3 +48,24 @@ body { background: #faf7f0; color: #1a2b22; }
 }
 .animate-floaty { animation: floaty 7s ease-in-out infinite; }
 .reveal { animation: revealUp 0.7s ease-out both; }
+
+@keyframes borderGlow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+.feature-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px -12px rgba(31, 92, 61, 0.25);
+}
+.feature-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent, #1f5c3d), transparent);
+}
