@@ -1,10 +1,10 @@
 "use server";
+import { notify } from "@/lib/notify";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/guard";
 import { orderSchema } from "@/lib/validation/schemas";
-import { notify } from "@/lib/notify";
 
 export async function createOrder(_prev: unknown, formData: FormData) {
   const profile = await requireRole("buyer");
@@ -56,7 +56,7 @@ export async function respondProposal(proposalId: string, approve: boolean) {
   }
 
   if (approve) {
-    // Get the accepted allocations for this proposal.
+    // Get the farmer-accepted allocations for this proposal.
     const { data: allocs } = await supabase
       .from("match_allocations")
       .select("id,listing_id,farmer_id,allocated_qty")
@@ -82,7 +82,7 @@ export async function respondProposal(proposalId: string, approve: boolean) {
         await supabase.from("harvest_listings")
           .update({
             available_qty: newQty,
-            status: newQty === 0 ? "sold" : "available",
+            status: newQty === 0 ? "fully_allocated" : "partially_allocated",
           })
           .eq("id", (a as any).listing_id);
       }
