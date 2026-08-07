@@ -6,10 +6,17 @@ import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
+import { ProposalActions } from "@/app/buyer/ProposalActions";
 
 export default async function BuyerDashboard() {
   const profile = await requireRole("buyer");
   const supabase = createClient();
+
+  const { count: unread } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.id)
+    .eq("read", false);
 
   const { data: orgs } = await supabase
     .from("buyer_organizations").select("id").eq("owner_id", profile.id);
@@ -21,9 +28,17 @@ export default async function BuyerDashboard() {
     .eq("buyer_organizations.owner_id", profile.id)
     .order("created_at", { ascending: false });
 
+  // Proposals awaiting this buyer's approval.
+  const { data: proposals } = await supabase
+    .from("match_proposals")
+    .select("id,status,explanation,buyer_orders!inner(buyer_organizations!inner(owner_id))")
+    .eq("buyer_orders.buyer_organizations.owner_id", profile.id)
+    .eq("status", "pending_farmers")
+    .order("created_at", { ascending: false });
+
   return (
     <>
-      <AppHeader name={profile.full_name} role="Buyer" />
+      <AppHeader name={profile.full_name} role="Buyer" unread={unread ?? 0} />
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-forest-dark">Procurement</h1>
@@ -45,23 +60,40 @@ export default async function BuyerDashboard() {
           </div>
         )}
 
-        {orders?.length ? (
-          <div className="space-y-2">
-            {orders.map((o: any) => (
-              <Link
-                key={o.id}
-                href={`/buyer/orders/${o.id}`}
-                className="card flex items-center justify-between transition hover:shadow-md"
-              >
-                <div>
-                  <p className="font-semibold text-forest-dark">{o.products?.name} · {o.required_qty} {o.unit}</p>
-                  <p className="text-sm text-gray-500">Offer {formatNu(o.offered_price)}/{o.unit} · by {o.required_delivery_date}</p>
+        {proposals?.length ? (
+          <section>
+            <h2 className="mb-2 text-sm font-semibold text-gray-500">Proposals to review</h2>
+            <div className="space-y-2">
+              {proposals.map((p: any) => (
+                <div key={p.id} className="card flex items-center justify-between gap-4">
+                  <p className="text-sm text-gray-600">{p.explanation}</p>
+                  <ProposalActions proposalId={p.id} />
                 </div>
-                <StatusBadge status={o.status} />
-              </Link>
-            ))}
-          </div>
-        ) : <Empty title="No orders yet" hint="Create a procurement order to receive proposals." />}
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-gray-500">Your orders</h2>
+          {orders?.length ? (
+            <div className="space-y-2">
+              {orders.map((o: any) => (
+                <Link
+                  key={o.id}
+                  href={`/buyer/orders/${o.id}`}
+                  className="card flex items-center justify-between transition hover:shadow-md"
+                >
+                  <div>
+                    <p className="font-semibold text-forest-dark">{o.products?.name} · {o.required_qty} {o.unit}</p>
+                    <p className="text-sm text-gray-500">Offer {formatNu(o.offered_price)}/{o.unit} · by {o.required_delivery_date}</p>
+                  </div>
+                  <StatusBadge status={o.status} />
+                </Link>
+              ))}
+            </div>
+          ) : <Empty title="No orders yet" hint="Create a procurement order to receive proposals." />}
+        </section>
       </main>
     </>
   );
