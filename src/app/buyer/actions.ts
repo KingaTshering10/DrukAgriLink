@@ -1,10 +1,10 @@
 "use server";
-import { notify } from "@/lib/notify";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/auth/guard";
 import { orderSchema } from "@/lib/validation/schemas";
+import { notify } from "@/lib/notify";
 
 export async function createOrder(_prev: unknown, formData: FormData) {
   const profile = await requireRole("buyer");
@@ -46,12 +46,13 @@ export async function respondProposal(proposalId: string, approve: boolean) {
     .update({ status: approve ? "confirmed" : "open" })
     .eq("id", (proposal as any).buyer_order_id);
 
-  // Notify the coordinator of the decision.
+  // Notify the coordinator of the decision (links to the proposal detail page).
   if ((proposal as any).coordinator_id) {
     await notify(
       (proposal as any).coordinator_id,
       approve ? "Buyer approved proposal" : "Buyer rejected proposal",
-      `${profile.full_name} ${approve ? "approved" : "rejected"} a match proposal.`
+      `${profile.full_name} ${approve ? "approved" : "rejected"} a match proposal.`,
+      `/coordinator/proposals/${proposalId}`
     );
   }
 
