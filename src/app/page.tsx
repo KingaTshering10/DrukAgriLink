@@ -22,7 +22,7 @@ export default function Landing() {
 
         <div className="mx-auto max-w-4xl px-4 py-24 text-white sm:py-32">
           <p className="reveal mb-4 inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1 text-sm backdrop-blur">
-            ཀུ་ཟུ་ཟང་པོ་ · Kuzuzangpo · Welcome
+            སྐུ་གཟུགས་བཟང་པོ་ལགས། · Kuzuzangpo La · Welcome
           </p>
           <h1 className="reveal max-w-2xl text-4xl font-bold leading-tight sm:text-6xl" style={{ animationDelay: "120ms" }}>
             From Bhutan&apos;s farms to the nation&apos;s tables.
