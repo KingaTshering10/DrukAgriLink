@@ -4,10 +4,10 @@ import { AnimatedStats } from "./AnimatedStats";
 
 export default function Landing() {
   const features = [
-    { icon: Sprout, title: "List your crops", body: "Farmers publish available produce with price, grade and location." },
-    { icon: Users, title: "Pool your supply", body: "Coordinators pool small harvests to meet larger buyer orders." },
-    { icon: Truck, title: "Share vehicles", body: "Assign vehicles and track collection stop by stop." },
-    { icon: HandCoins, title: "Clear payments", body: "Every deduction shown; net amount due per farmer, no hidden fees." },
+    { icon: Sprout, title: "List your crops", body: "Farmers publish available produce with price, grade and location.", accent: "#1f5c3d", tag: "For farmers" },
+    { icon: Users, title: "Pool your supply", body: "Coordinators pool small harvests to meet larger buyer orders.", accent: "#f4a300", tag: "For coordinators" },
+    { icon: Truck, title: "Share vehicles", body: "Assign vehicles and track collection stop by stop.", accent: "#e8722b", tag: "For transport" },
+    { icon: HandCoins, title: "Clear payments", body: "Every deduction shown; net amount due per farmer, no hidden fees.", accent: "#b5322e", tag: "Transparent" },
   ];
 
   return (
@@ -22,7 +22,7 @@ export default function Landing() {
 
         <div className="mx-auto max-w-4xl px-4 py-24 text-white sm:py-32">
           <p className="reveal mb-4 inline-block rounded-full border border-white/20 bg-white/10 px-4 py-1 text-sm backdrop-blur">
-            སྐུ་གཟུགས་བཟང་པོ་ལགས། · Kuzuzangpo La · Welcome
+            Kuzuzangpo la · Welcome
           </p>
           <h1 className="reveal max-w-2xl text-4xl font-bold leading-tight sm:text-6xl" style={{ animationDelay: "120ms" }}>
             From Bhutan&apos;s farms to the nation&apos;s tables.
@@ -46,21 +46,27 @@ export default function Landing() {
         <AnimatedStats />
       </section>
 
-      {/* FEATURES with scroll-reveal */}
+      {/* FEATURES with scroll-reveal + colorful interactive cards */}
       <section className="mx-auto max-w-4xl px-4 pb-20">
         <h2 className="reveal mb-8 text-center text-2xl font-bold text-forest-dark">How DrukAgriLink works</h2>
         <div className="grid gap-6 sm:grid-cols-2">
           {features.map((f, i) => (
             <div
               key={f.title}
-              className="card group reveal"
-              style={{ animationDelay: `${i * 140}ms` }}
+              className="feature-card group reveal rounded-2xl border border-black/5 bg-white p-6"
+              style={{ animationDelay: `${i * 140}ms`, ["--accent" as any]: f.accent }}
             >
-              <div className="mb-3 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-forest-light text-forest transition-all duration-200 group-hover:bg-forest group-hover:text-white group-hover:scale-110">
-                <f.icon className="h-6 w-6" />
+              <div
+                className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl text-white transition-all duration-300 group-hover:scale-110 group-hover:rotate-6"
+                style={{ background: f.accent }}
+              >
+                <f.icon className="h-7 w-7" />
               </div>
-              <h3 className="font-semibold text-forest-dark">{f.title}</h3>
+              <h3 className="text-lg font-bold text-forest-dark">{f.title}</h3>
               <p className="mt-1 text-sm text-gray-600">{f.body}</p>
+              <span className="mt-4 inline-block text-sm font-semibold text-forest opacity-0 transition group-hover:opacity-100">
+                {f.tag} →
+              </span>
             </div>
           ))}
         </div>
@@ -79,7 +85,7 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-black/5 py-8 text-center text-sm text-gray-500">
-        Developed and maintained by Kinga Tshering ·For now fictional data · prices shown as Nu. (BTN)
+        Demo MVP · fictional data · prices shown as Nu. (BTN)
       </footer>
     </main>
   );
