@@ -27,3 +27,24 @@ body { background: #faf7f0; color: #1a2b22; }
 .animate-fade-up {
   animation: fadeUp 0.5s ease-out both;
 }
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(6deg); }
+}
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 12s ease infinite;
+}
+.animate-floaty { animation: floaty 7s ease-in-out infinite; }
+.reveal { animation: revealUp 0.7s ease-out both; }
