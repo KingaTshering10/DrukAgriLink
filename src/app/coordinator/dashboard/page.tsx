@@ -10,6 +10,13 @@ import { formatNu } from "@/lib/finance/calc";
 export default async function CoordinatorDashboard() {
   const profile = await requireRole("coordinator");
   const supabase = createClient();
+
+  const { count: unread } = await supabase
+    .from("notifications")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", profile.id)
+    .eq("read", false);
+
   const [{ data: orders }, { data: supply }, { data: proposals }] = await Promise.all([
     supabase.from("buyer_orders").select("id,required_qty,unit,offered_price,status,products(name)").eq("status", "open"),
     supabase.from("harvest_listings").select("id,available_qty,unit,min_price,dzongkhag,products(name)").eq("status", "available"),
@@ -18,7 +25,7 @@ export default async function CoordinatorDashboard() {
 
   return (
     <>
-      <AppHeader name={profile.full_name} role="Coordinator" />
+      <AppHeader name={profile.full_name} role="Coordinator" unread={unread ?? 0} />
       <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
         <h1 className="text-xl font-bold text-forest-dark">Coordination desk</h1>
 
