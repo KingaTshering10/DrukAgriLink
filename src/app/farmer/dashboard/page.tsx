@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
+import { AllocationActions } from "@/app/farmer/AllocationActions";
 
 export default async function FarmerDashboard() {
   const profile = await requireRole("farmer");
@@ -88,7 +89,9 @@ export default async function FarmerDashboard() {
                     <p className="font-semibold text-forest-dark">{a.allocated_qty} units @ {formatNu(a.unit_price)}</p>
                     <p className="text-sm text-gray-500">Proposed allocation</p>
                   </div>
-                  <StatusBadge status={a.status} />
+                  {a.status === "proposed"
+                    ? <AllocationActions allocationId={a.id} />
+                    : <StatusBadge status={a.status} />}
                 </div>
               ))}
             </div>
