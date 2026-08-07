@@ -50,7 +50,8 @@ export async function respondAllocation(allocationId: string, accept: boolean) {
       await notify(
         proposal.coordinator_id,
         accept ? "Farmer accepted allocation" : "Farmer declined allocation",
-        `${profile.full_name} ${accept ? "accepted" : "declined"} an allocation of ${alloc.allocated_qty ?? ""} units.`
+        `${profile.full_name} ${accept ? "accepted" : "declined"} an allocation of ${alloc.allocated_qty ?? ""} units.`,
+        `/coordinator/proposals/${alloc.proposal_id}`
       );
     }
   }
