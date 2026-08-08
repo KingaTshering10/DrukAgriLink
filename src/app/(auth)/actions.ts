@@ -17,10 +17,14 @@ export async function signIn(_prev: unknown, formData: FormData) {
 export async function signUp(_prev: unknown, formData: FormData) {
   const email = String(formData.get("email") ?? "");
   const password = String(formData.get("password") ?? "");
+  const confirm = String(formData.get("confirm_password") ?? "");
   const full_name = String(formData.get("full_name") ?? "");
+  const phone = String(formData.get("phone") ?? "").trim();
   const role = String(formData.get("role") ?? "") as Role;
+
   if (!ROLES.includes(role)) return { error: "Please choose a valid role." };
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
+  if (password !== confirm) return { error: "Passwords do not match." };
 
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -28,7 +32,12 @@ export async function signUp(_prev: unknown, formData: FormData) {
 
   const uid = data.user?.id;
   if (uid) {
-    const { error: pErr } = await supabase.from("profiles").insert({ id: uid, full_name, role });
+    const { error: pErr } = await supabase.from("profiles").insert({
+      id: uid,
+      full_name,
+      role,
+      phone: phone || null,
+    });
     if (pErr) return { error: "Account created but profile setup failed. Contact support." };
   }
   redirect(ROLE_HOME[role]);
