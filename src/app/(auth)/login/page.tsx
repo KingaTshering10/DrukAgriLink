@@ -29,10 +29,11 @@ export default function Login() {
         <div className="animate-floaty absolute right-4 top-52 h-56 w-56 rounded-full bg-marigold/20 blur-3xl" style={{ animationDelay: "1.5s" }} />
         <div className="animate-floaty absolute bottom-16 left-1/3 h-32 w-32 rounded-full bg-crimson/20 blur-2xl" style={{ animationDelay: "3s" }} />
 
-        <div className="relative flex h-full flex-col justify-center px-12 text-white">
-          <Link href="/" className="reveal mb-10 flex items-center gap-2 text-lg font-bold">
+        <div className="relative flex h-full flex-col justify-center px-12 py-16 text-white">
+          <Link href="/" className="reveal mb-8 flex items-center gap-2 text-lg font-bold">
             <Sprout size={24} /> DrukAgriLink
           </Link>
+
           <p className="reveal mb-3 inline-block w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-sm backdrop-blur" style={{ animationDelay: "120ms" }}>
             Kuzuzangpo la · Welcome back
           </p>
@@ -50,7 +51,24 @@ export default function Login() {
               </li>
             ))}
           </ul>
+
+          {/* Testimonial card */}
+          <figure className="reveal mt-10 max-w-sm rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur" style={{ animationDelay: "480ms" }}>
+            <div className="mb-2 text-saffron" aria-hidden>★★★★★</div>
+            <blockquote className="text-sm leading-relaxed text-white/90">
+              “Before DrukAgriLink my potatoes often went unsold. Now a coordinator pools my harvest
+              with others and I reach buyers I never could on my own.”
+            </blockquote>
+            <figcaption className="mt-3 flex items-center gap-3">
+              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-saffron font-bold text-forest-dark">P</span>
+              <span>
+                <p className="text-sm font-semibold">Pema, farmer</p>
+                <p className="text-xs text-white/60">Chukha · sample story</p>
+              </span>
+            </figcaption>
+          </figure>
         </div>
+
         <div className="absolute bottom-0 left-0 h-2 w-full bg-gradient-to-r from-saffron via-marigold to-crimson" />
       </aside>
 
