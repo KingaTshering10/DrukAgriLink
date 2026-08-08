@@ -67,17 +67,7 @@ export default function Register() {
               </li>
             ))}
           </ul>
-
-          <div className="reveal mt-12 flex gap-8" style={{ animationDelay: "480ms" }}>
-            <div>
-              <p className="text-3xl font-bold">850+</p>
-              <p className="text-xs text-white/70">Farmers connected</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold">20</p>
-              <p className="text-xs text-white/70">Dzongkhags reached</p>
-            </div>
-          </div>
+          
         </div>
         <div className="absolute bottom-0 left-0 h-2 w-full bg-gradient-to-r from-saffron via-marigold to-crimson" />
       </aside>
