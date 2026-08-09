@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GitMerge, ShoppingCart, Sprout, FileText } from "lucide-react";
+import { GitMerge, ShoppingCart, Sprout, FileText, Truck } from "lucide-react";
 import { requireRole } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
@@ -18,7 +18,12 @@ export default async function CoordinatorDashboard() {
   const [{ data: orders }, { data: supply }, { data: proposals }] = await Promise.all([
     supabase.from("buyer_orders").select("id,required_qty,unit,offered_price,status,products(name)").eq("status", "open"),
     supabase.from("harvest_listings").select("id,available_qty,unit,min_price,dzongkhag,products(name)").eq("status", "available"),
-    supabase.from("match_proposals").select("id,status,explanation").order("created_at", { ascending: false }).limit(5),
+    supabase
+      .from("match_proposals")
+      .select("id,status,explanation,buyer_orders(products(name),buyer_organizations(name))")
+      .eq("coordinator_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(8),
   ]);
 
   const stats = [
@@ -47,11 +52,7 @@ export default async function CoordinatorDashboard() {
         {/* Stat cards */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           {stats.map((s, i) => (
-            <div
-              key={s.label}
-              className="reveal flex items-center gap-3 rounded-2xl border border-black/5 bg-white p-4 shadow-sm transition hover:shadow-md"
-              style={{ animationDelay: `${i * 80}ms` }}
-            >
+            <div key={s.label} className="reveal flex items-center gap-3 rounded-2xl border border-black/5 bg-white p-4 shadow-sm transition hover:shadow-md" style={{ animationDelay: `${i * 80}ms` }}>
               <div className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-white" style={{ background: s.accent }}>
                 <s.icon size={18} />
               </div>
@@ -108,21 +109,38 @@ export default async function CoordinatorDashboard() {
           ) : <Empty title="No available listings" />}
         </section>
 
-        {/* Recent proposals */}
+        {/* Recent proposals — richer cards + assign shortcut */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-gray-500">Recent proposals</h2>
           {proposals?.length ? (
             <div className="space-y-2">
-              {proposals.map((p: any) => (
-                <Link
-                  key={p.id}
-                  href={`/coordinator/proposals/${p.id}`}
-                  className="block rounded-2xl border border-black/5 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                >
-                  <div className="mb-1"><StatusBadge status={p.status} /></div>
-                  <p className="text-sm text-gray-600">{p.explanation}</p>
-                </Link>
-              ))}
+              {proposals.map((p: any) => {
+                const order = p.buyer_orders;
+                return (
+                  <div key={p.id} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm transition hover:shadow-md">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-forest-dark">
+                            {order?.products?.name ?? "Proposal"}
+                          </span>
+                          {order?.buyer_organizations?.name && (
+                            <span className="text-sm text-gray-500">for {order.buyer_organizations.name}</span>
+                          )}
+                          <StatusBadge status={p.status} />
+                        </div>
+                        <p className="text-sm text-gray-600">{p.explanation}</p>
+                      </div>
+                      <div className="flex flex-none flex-col gap-2">
+                        <Link href={`/coordinator/proposals/${p.id}`} className="btn-ghost text-sm">View</Link>
+                        {p.status === "confirmed" && (
+                          <Link href={`/coordinator/proposals/${p.id}`} className="btn-primary text-sm"><Truck size={15} /> Assign</Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : <Empty title="No proposals yet" />}
         </section>
