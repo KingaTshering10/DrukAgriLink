@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatNu } from "@/lib/finance/calc";
+import { AssignTransport } from "./AssignTransport";
 
 export default async function ProposalDetail({ params }: { params: { id: string } }) {
   const profile = await requireRole("coordinator");
