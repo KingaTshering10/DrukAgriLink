@@ -28,7 +28,6 @@ export default async function BuyerDashboard() {
     .eq("buyer_organizations.owner_id", profile.id)
     .order("created_at", { ascending: false });
 
-  // Proposals awaiting this buyer's approval.
   const { data: proposals } = await supabase
     .from("match_proposals")
     .select("id,status,explanation,buyer_orders!inner(buyer_organizations!inner(owner_id))")
@@ -36,37 +35,53 @@ export default async function BuyerDashboard() {
     .eq("status", "pending_farmers")
     .order("created_at", { ascending: false });
 
+  const openCount = orders?.filter((o: any) => o.status === "open").length ?? 0;
+
   return (
     <>
       <AppHeader name={profile.full_name} role="Buyer" unread={unread ?? 0} />
-      <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-forest-dark">Procurement</h1>
-          <div className="flex gap-2">
-            <Link href="/buyer/organization/new" className="btn-ghost"><Plus size={16} /> New organization</Link>
-            <Link href="/buyer/orders/new" className="btn-primary"><Plus size={16} /> New order</Link>
+
+      {/* Gradient hero header with flag motif */}
+      <section className="relative isolate overflow-hidden">
+        <div className="animate-gradient absolute inset-0 -z-10 bg-gradient-to-br from-forest via-forest-dark to-[#3a1d0e]" />
+        <div className="animate-floaty absolute -right-8 top-6 -z-10 h-40 w-40 rounded-full bg-saffron/20 blur-2xl" />
+        <div className="animate-floaty absolute left-1/4 bottom-0 -z-10 h-32 w-32 rounded-full bg-marigold/20 blur-2xl" style={{ animationDelay: "2s" }} />
+        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-10 text-white sm:flex-row sm:items-end sm:justify-between">
+          <div className="reveal">
+            <p className="text-sm text-white/70">Procurement desk</p>
+            <h1 className="text-2xl font-bold sm:text-3xl">Welcome, {profile.full_name.split(" ")[0]}</h1>
+            <p className="mt-1 text-sm text-white/80">
+              {orders?.length ?? 0} order{(orders?.length ?? 0) === 1 ? "" : "s"} · {openCount} open
+            </p>
+          </div>
+          <div className="reveal flex gap-2" style={{ animationDelay: "120ms" }}>
+            <Link href="/buyer/organization/new" className="btn border border-white/40 text-white hover:bg-white/10"><Plus size={16} /> Organization</Link>
+            <Link href="/buyer/orders/new" className="btn bg-saffron text-forest-dark hover:brightness-95"><Plus size={16} /> New order</Link>
           </div>
         </div>
+        <div className="h-1.5 w-full bg-gradient-to-r from-saffron via-marigold to-crimson" />
+      </section>
 
+      <main className="mx-auto max-w-4xl space-y-8 px-4 py-8">
         {!hasOrg && (
-          <div className="card border-saffron/40 bg-saffron/10">
+          <div className="reveal card border-saffron/40 bg-saffron/10">
             <p className="font-semibold text-forest-dark">Set up your organization first</p>
-            <p className="mt-1 text-sm text-gray-600">
-              You need a buyer organization before creating orders.
-            </p>
-            <Link href="/buyer/organization/new" className="btn-primary mt-3 inline-flex">
-              <Plus size={16} /> Create organization
-            </Link>
+            <p className="mt-1 text-sm text-gray-600">You need a buyer organization before creating orders.</p>
+            <Link href="/buyer/organization/new" className="btn-primary mt-3 inline-flex"><Plus size={16} /> Create organization</Link>
           </div>
         )}
 
+        {/* Proposals to review — highlighted action area */}
         {proposals?.length ? (
-          <section>
-            <h2 className="mb-2 text-sm font-semibold text-gray-500">Proposals to review</h2>
+          <section className="reveal">
+            <div className="mb-3 flex items-center gap-2">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-marigold" />
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-forest-dark">Proposals to review</h2>
+            </div>
             <div className="space-y-2">
               {proposals.map((p: any) => (
-                <div key={p.id} className="card flex items-center justify-between gap-4">
-                  <p className="text-sm text-gray-600">{p.explanation}</p>
+                <div key={p.id} className="card flex items-center justify-between gap-4 border-l-4 border-l-marigold">
+                  <p className="text-sm text-gray-700">{p.explanation}</p>
                   <ProposalActions proposalId={p.id} />
                 </div>
               ))}
@@ -74,15 +89,17 @@ export default async function BuyerDashboard() {
           </section>
         ) : null}
 
-        <section>
-          <h2 className="mb-2 text-sm font-semibold text-gray-500">Your orders</h2>
+        {/* Orders */}
+        <section className="reveal" style={{ animationDelay: "80ms" }}>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">Your orders</h2>
           {orders?.length ? (
             <div className="space-y-2">
               {orders.map((o: any) => (
                 <Link
                   key={o.id}
                   href={`/buyer/orders/${o.id}`}
-                  className="card flex items-center justify-between transition hover:shadow-md"
+                  className="feature-card flex items-center justify-between rounded-2xl border border-black/5 bg-white p-5"
+                  style={{ ["--accent" as any]: "#1f5c3d" }}
                 >
                   <div>
                     <p className="font-semibold text-forest-dark">{o.products?.name} · {o.required_qty} {o.unit}</p>
