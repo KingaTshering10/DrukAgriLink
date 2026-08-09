@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, ShoppingCart, Clock, CheckCircle2 } from "lucide-react";
 import { requireRole } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
@@ -33,25 +33,54 @@ export default async function BuyerDashboard() {
     .eq("status", "pending_farmers")
     .order("created_at", { ascending: false });
 
+  const total = orders?.length ?? 0;
   const openCount = orders?.filter((o: any) => o.status === "open").length ?? 0;
+  const confirmedCount = orders?.filter((o: any) => o.status === "confirmed").length ?? 0;
+
+  const stats = [
+    { icon: ShoppingCart, label: "Total orders", value: total, accent: "#1f5c3d" },
+    { icon: Clock, label: "Open", value: openCount, accent: "#f4a300" },
+    { icon: CheckCircle2, label: "Confirmed", value: confirmedCount, accent: "#e8722b" },
+  ];
 
   return (
     <>
       <AppHeader name={profile.full_name} role="Buyer" unread={unread ?? 0} />
 
+      {/* Gradient header */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-forest to-forest-dark">
+        <div className="animate-floaty absolute -right-6 top-2 h-40 w-40 rounded-full bg-saffron/15 blur-3xl" />
+        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-8 text-white sm:flex-row sm:items-center sm:justify-between">
+          <div className="reveal">
+            <p className="text-sm text-white/70">Procurement desk</p>
+            <h1 className="text-2xl font-bold sm:text-3xl">Welcome, {profile.full_name.split(" ")[0]}</h1>
+          </div>
+          <div className="reveal flex gap-2" style={{ animationDelay: "100ms" }}>
+            <Link href="/buyer/organization/new" className="btn border border-white/40 text-white hover:bg-white/10"><Plus size={16} /> Organization</Link>
+            <Link href="/buyer/orders/new" className="btn bg-saffron text-forest-dark hover:brightness-95"><Plus size={16} /> New order</Link>
+          </div>
+        </div>
+        <div className="h-1 w-full bg-gradient-to-r from-saffron via-marigold to-crimson" />
+      </section>
+
       <main className="mx-auto max-w-4xl space-y-8 px-4 py-8">
-        {/* Header row */}
-        <div className="flex flex-col gap-4 border-b border-black/5 pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-forest-dark">Procurement</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              {orders?.length ?? 0} order{(orders?.length ?? 0) === 1 ? "" : "s"} · {openCount} open
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Link href="/buyer/organization/new" className="btn-ghost"><Plus size={16} /> Organization</Link>
-            <Link href="/buyer/orders/new" className="btn-primary"><Plus size={16} /> New order</Link>
-          </div>
+        {/* Stat cards */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className="reveal flex items-center gap-3 rounded-2xl border border-black/5 bg-white p-4 shadow-sm transition hover:shadow-md"
+              style={{ animationDelay: `${i * 80}ms` }}
+            >
+              <div className="inline-flex h-10 w-10 flex-none items-center justify-center rounded-xl text-white" style={{ background: s.accent }}>
+                <s.icon size={18} />
+              </div>
+              <div>
+                <p className="text-xl font-bold text-forest-dark sm:text-2xl">{s.value}</p>
+                <p className="text-xs text-gray-500">{s.label}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {!hasOrg && (
@@ -62,7 +91,7 @@ export default async function BuyerDashboard() {
           </div>
         )}
 
-        {/* Proposals — quietly highlighted with a left accent */}
+        {/* Proposals to review */}
         {proposals?.length ? (
           <section>
             <h2 className="mb-3 text-sm font-semibold text-gray-500">Proposals to review</h2>
@@ -86,11 +115,16 @@ export default async function BuyerDashboard() {
                 <Link
                   key={o.id}
                   href={`/buyer/orders/${o.id}`}
-                  className="card flex items-center justify-between transition hover:shadow-md hover:-translate-y-0.5"
+                  className="group flex items-center justify-between rounded-2xl border border-black/5 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <div>
-                    <p className="font-semibold text-forest-dark">{o.products?.name} · {o.required_qty} {o.unit}</p>
-                    <p className="text-sm text-gray-500">Offer {formatNu(o.offered_price)}/{o.unit} · by {o.required_delivery_date}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="inline-flex h-11 w-11 flex-none items-center justify-center rounded-xl bg-forest-light text-forest transition group-hover:scale-105">
+                      <ShoppingCart size={20} />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-forest-dark">{o.products?.name} · {o.required_qty} {o.unit}</p>
+                      <p className="text-sm text-gray-500">Offer {formatNu(o.offered_price)}/{o.unit} · by {o.required_delivery_date}</p>
+                    </div>
                   </div>
                   <StatusBadge status={o.status} />
                 </Link>
