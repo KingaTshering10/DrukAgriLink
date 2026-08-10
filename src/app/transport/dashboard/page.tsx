@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Empty } from "@/components/ui/Empty";
-import { TripActions } from "./TripActions";
 
 export default async function TransportDashboard() {
   const profile = await requireRole("transport");
@@ -105,20 +104,24 @@ export default async function TransportDashboard() {
           ) : <Empty title="No vehicles registered" hint="Add a vehicle to start receiving trips." />}
         </section>
 
-        {/* Assigned trips */}
+        {/* Assigned trips — clickable to detail page */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-gray-500">Assigned trips</h2>
           {trips?.length ? (
             <div className="space-y-2">
               {trips.map((t: any) => (
-                <div key={t.id} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+                <Link
+                  key={t.id}
+                  href={`/transport/trips/${t.id}`}
+                  className="group block rounded-2xl border border-black/5 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                >
                   <div className="flex items-center justify-between">
-                    <p className="font-semibold text-forest-dark">{t.collection_location} → {t.delivery_location}</p>
+                    <p className="font-semibold text-forest-dark group-hover:text-forest">{t.collection_location} → {t.delivery_location}</p>
                     <StatusBadge status={t.status} />
                   </div>
-                  <p className="text-sm text-gray-500">Collect {t.collection_date ?? "TBD"} · Deliver {t.delivery_date ?? "TBD"}</p>
-                  <TripActions id={t.id} status={t.status} />
-                </div>
+                  <p className="mt-1 text-sm text-gray-500">Collect {t.collection_date ?? "TBD"} · Deliver {t.delivery_date ?? "TBD"}</p>
+                  <p className="mt-2 text-sm font-medium text-forest">View trip →</p>
+                </Link>
               ))}
             </div>
           ) : <Empty title="No trips assigned" hint="Coordinators will assign trips here once your vehicle is available." />}
