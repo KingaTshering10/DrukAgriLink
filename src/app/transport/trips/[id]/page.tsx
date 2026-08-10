@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { formatNu } from "@/lib/finance/calc";
-import { TripActions } from "@/app/transport/TripActions";
+import { TripActions } from "@/app/transport/dashboard/TripActions";
 
 export default async function TripDetail({ params }: { params: { id: string } }) {
   const profile = await requireRole("transport");
