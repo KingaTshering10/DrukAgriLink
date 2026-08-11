@@ -40,9 +40,8 @@ export async function signUp(_prev: unknown, formData: FormData) {
     });
     if (pErr) return { error: "Account created but profile setup failed. Contact support." };
   }
-  redirect(ROLE_HOME[role]);
+  return { success: true };
 }
-
 export async function signOut() {
   const supabase = createClient();
   await supabase.auth.signOut();
