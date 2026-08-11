@@ -1,47 +1,90 @@
 # DrukAgriLink
 
-A Bhutan-focused agricultural coordination platform. It helps small farmers combine
-their available produce, connect with institutional buyers, and coordinate shared
-transport — from harvest listing through collection and payment status.
+**A farm-to-market coordination platform for Bhutan.** DrukAgriLink connects smallholder farmers, institutional buyers, coordinators, and transporters so that scattered harvests can be pooled to meet large orders and moved efficiently across the country — from harvest listing through matching, approval, transport, and delivery.
 
-This is the **first functional MVP**. The architecture is deliberately simple: Next.js
-(App Router) with server actions talking directly to Supabase. No separate backend.
+🌐 **Live demo:** [druk-agri-link.vercel.app](https://druk-agri-link.vercel.app)
 
-## Main features
+The architecture is deliberately simple: Next.js (App Router) with server actions talking directly to Supabase. No separate backend.
 
-- Four roles — **farmer, buyer, coordinator, transport** — with server-side enforcement.
-- Farmers publish harvest listings; buyers create procurement orders.
-- Coordinators combine multiple farmer listings into one buyer order and build a
-  **plain-language match summary** (fulfilment %, farmer count, avg price — no opaque score).
-- Farmer and buyer approval gate the match; coordinators assign vehicles; transporters
-  update shipment status.
-- Collection records with decimal-safe money math: `net due = accepted × price − transport − other`.
-- Payment status tracking (Pending / Paid) — **no real money movement**.
-- Row Level Security so users only see their own private records.
+---
+
+## The problem
+
+Bhutan's farmers are small and geographically scattered, while institutional buyers (hospitals, schools, hotels, wholesalers) need large, reliable volumes of produce. Neither side can easily reach the other, and transport is fragmented. DrukAgriLink sits in the middle: coordinators pool small harvests to fulfil big orders, and shared vehicles carry the produce from farm to buyer — with every step visible to everyone involved.
+
+## What it does
+
+The platform supports four roles, each with its own workspace and server-side enforcement:
+
+- **Farmers** publish harvest listings (product, quantity, grade, price, location) and accept or decline allocation offers.
+- **Buyers** create procurement orders on behalf of their organization and approve or reject proposed matches.
+- **Coordinators** pool farmer supply to meet buyer demand, build match proposals with a plain-language summary, and assign transport.
+- **Transporters** register vehicles, receive assigned trips, and update delivery status stage by stage.
+
+### The end-to-end workflow
+
+```
+Farmer lists harvest
+      │
+Coordinator builds a match  ──►  Farmer accepts allocation
+      │                                    │
+Buyer approves the proposal  ◄─────────────┘
+      │
+Coordinator assigns a vehicle  ──►  Transporter delivers
+                                    (assigned → accepted → collecting → in transit → delivered)
+```
+
+At each meaningful step, the relevant parties receive **in-app notifications**, so farmers, buyers, and coordinators always know where a deal — and the produce — stands.
+
+## Key features
+
+- **Four roles** — farmer, buyer, coordinator, transport — with role-based access control and Postgres row-level security (RLS) enforcing per-user data isolation.
+- **Complete coordination workflow** from harvest listing through matching, multi-party approval, transport assignment, and delivery status updates.
+- **Plain-language match summaries** (fulfilment %, farmer count, average price) instead of an opaque score.
+- **In-app notification system** with unread badges, mark-as-read, and clickable notifications that deep-link to the relevant record; all parties are notified at each transport stage.
+- **Full CRUD** on orders and harvests (create, view, edit, delete) with ownership checks.
+- **Vehicle registration and transport assignment** — transporters register vehicles; coordinators assign an available vehicle to a confirmed order, creating a tracked shipment.
+- **Authoritative Bhutanese location data** — a 1,051-record Dzongkhag → Gewog → Chiwog administrative hierarchy powers a cascading location selector for standardized geographic entry.
+- **Decimal-safe money math** for collection and payment records.
+- **Responsive, culturally themed UI** with a cohesive design across landing, authentication, and every role's dashboard.
 
 ## Technology stack
 
-Next.js 14 (App Router) · TypeScript · Tailwind CSS · Supabase (Auth + Postgres) ·
-Zod · React Hook Form-compatible forms · Lucide icons · `decimal.js` for money · Vitest.
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 14 (App Router, Server Actions) |
+| Language | TypeScript |
+| Database & Auth | Supabase (PostgreSQL, Auth, Row-Level Security) |
+| Styling | Tailwind CSS |
+| Validation | Zod |
+| Money math | decimal.js |
+| Icons | Lucide |
+| Testing | Vitest |
+| Deployment | Vercel (continuous deployment from GitHub) |
+
+## Architecture notes
+
+- **Server Actions** handle all mutations (creating orders, responding to proposals, assigning transport), keeping data logic on the server and out of the client.
+- **Row-Level Security** is the primary data-isolation boundary; server actions additionally verify ownership before sensitive writes.
+- **Notifications** are written as a side effect of workflow transitions; recipient lists are de-duplicated and defensively guarded so a missing link never breaks a status update.
 
 ## Repository structure
 
 ```
 supabase/
   migrations/0001_init.sql   # tables, enums, triggers, RLS policies
-  seed.sql                   # fictional Bhutan demo data + demo login accounts
+  seed.sql                   # fictional Bhutan demo data
 src/
   app/                       # routes (public, farmer, buyer, coordinator, transport, shared)
-  components/                # UI (status badge, header, empty state)
+  components/                # UI (status badge, header, empty state, location picker)
   lib/
     supabase/                # browser + server clients, session middleware
     auth/                    # roles + server-side route guards
     validation/schemas.ts    # Zod schemas (harvest, order, matching)
     finance/calc.ts          # decimal-safe money calculations
     matching/match.ts        # match validation + summary text
-    constants/bhutan.ts      # dzongkhags, gewogs, products
+    constants/               # Bhutan administrative data (dzongkhag/gewog/chiwog), products
     tests/                   # Vitest suite
-locales/                     # en.json + dz.json (Dzongkha = review placeholders)
 ```
 
 ## Requirements
@@ -68,20 +111,14 @@ Never commit `.env.local`. Only `.env.example` (placeholders) is tracked.
 
 ## Supabase setup
 
-1. Create a project at supabase.com.
+1. Create a project at [supabase.com](https://supabase.com).
 2. Project Settings → API: copy the URL + anon key into `.env.local`.
 3. SQL Editor → run `supabase/migrations/0001_init.sql`.
 4. SQL Editor → run `supabase/seed.sql` for demo data.
 
-### Database migration / seed
+The migration creates every table with UUID ids, `created_at`/`updated_at`, `numeric()` money columns, and RLS policies. The seed inserts fictional farmers, buyers, transport providers, vehicles, products, listings, and orders. All people, phone numbers, and organizations are fictional. Currency shows as `Nu.` (BTN).
 
-The migration creates every table with UUID ids, `created_at`/`updated_at`, `numeric()`
-money columns, and RLS policies. The seed inserts fictional farmers, buyers, transport
-providers, vehicles, products, listings, orders, and two match proposals.
-
-If SQL-based auth seeding fails (it is Supabase-version dependent), create the demo
-accounts under **Auth → Users** with the same emails and password, or just register
-fresh accounts through the app.
+To try the app, register a fresh account through the sign-up page and choose a role.
 
 ## Development commands
 
@@ -94,33 +131,15 @@ npm run build       # production build
 npm start           # run the production build
 ```
 
-## Demo users
+## Roadmap
 
-All demo accounts use password **`Druk@2024`**:
+Natural next steps beyond the current build:
 
-| Role | Email |
-| --- | --- |
-| Farmer | `farmer1@druk.demo` … `farmer8@druk.demo` |
-| Buyer | `buyer1@druk.demo`, `buyer2@druk.demo`, `buyer3@druk.demo` |
-| Transport | `transport1@druk.demo`, `transport2@druk.demo` |
-| Coordinator | `coordinator@druk.demo` |
+- Collection-entry and farmer payment-receipt views (money math and status tracking already in place).
+- Real payment processing and SMS/email notifications.
+- Verified Dzongkha translations and an i18n switcher.
+- GPS tracking and route optimization for transport.
 
-All people, phone numbers, and organizations are fictional. Currency shows as `Nu.` (BTN).
+## Author
 
-## Known limitations (not in this first MVP)
-
-- Real payment processing, GPS tracking, automatic route optimization, SMS integration.
-- Complete Dzongkha translation (only review placeholders in `locales/dz.json`).
-- Production identity verification, advanced analytics, offline sync.
-- Some role pages are implemented as the core workflow slice (dashboards + create/list +
-  the match builder + trip status). A few detail/receipt pages listed in the spec are
-  stubbed to their dashboard equivalents and are the natural next step (see below).
-
-## Recommended next development phase
-
-1. Fill remaining detail pages: harvest details, order details, match details,
-   delivery confirmation, collection-entry form, farmer collection receipt + payment view.
-2. Add vehicle registration + coordinator transport-assignment forms (schema already supports them).
-3. Notifications on state changes (insert rows on allocation/proposal/shipment updates).
-4. Wire `react-hook-form` + `zodResolver` on the client for inline field errors.
-5. Verified Dzongkha translations and an i18n switcher.
+Built by **Kinga Tshering** · [GitHub](https://github.com/KingaTshering10)
