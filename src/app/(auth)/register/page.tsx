@@ -32,10 +32,26 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPw, setShowPw] = useState(false);
-  const [state, action] = useFormState(signUp, null as { error?: string } | null);
+  const [state, action] = useFormState(signUp, null as { error?: string; success?: boolean } | null);
 
   const mismatch = confirm.length > 0 && password !== confirm;
   const matched = confirm.length > 0 && password === confirm;
+
+  // Success screen after signup (email confirmation required).
+  if (state?.success) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center px-4 text-center">
+        <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-forest-light text-forest">
+          <Sprout size={28} />
+        </div>
+        <h1 className="text-2xl font-bold text-forest-dark">Check your email</h1>
+        <p className="mt-2 text-gray-600">
+          We&apos;ve sent a confirmation link to your inbox. Click it to activate your account, then log in.
+        </p>
+        <Link href="/login" className="btn-primary mt-6">Go to login</Link>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen overflow-hidden md:grid md:grid-cols-[1.1fr_1fr]">
@@ -46,10 +62,11 @@ export default function Register() {
         <div className="animate-floaty absolute right-4 top-52 h-56 w-56 rounded-full bg-marigold/20 blur-3xl" style={{ animationDelay: "1.5s" }} />
         <div className="animate-floaty absolute bottom-16 left-1/3 h-32 w-32 rounded-full bg-crimson/20 blur-2xl" style={{ animationDelay: "3s" }} />
 
-        <div className="relative flex h-full flex-col justify-center px-12 text-white">
-          <Link href="/" className="reveal mb-10 flex items-center gap-2 text-lg font-bold">
+        <div className="relative flex h-full flex-col justify-center px-12 py-16 text-white">
+          <Link href="/" className="reveal mb-8 flex items-center gap-2 text-lg font-bold">
             <Sprout size={24} /> DrukAgriLink
           </Link>
+
           <p className="reveal mb-3 inline-block w-fit rounded-full border border-white/20 bg-white/10 px-4 py-1 text-sm backdrop-blur" style={{ animationDelay: "120ms" }}>
             Kuzuzangpo la · Welcome
           </p>
@@ -67,7 +84,6 @@ export default function Register() {
               </li>
             ))}
           </ul>
-          
         </div>
         <div className="absolute bottom-0 left-0 h-2 w-full bg-gradient-to-r from-saffron via-marigold to-crimson" />
       </aside>
