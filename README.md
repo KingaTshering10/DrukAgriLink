@@ -10,7 +10,7 @@ The architecture is deliberately simple: Next.js (App Router) with server action
 
 ## The problem
 
-Bhutan's farmers is small and geographically scattered, while institutional buyers (hospitals, schools, hotels, wholesalers) need large, reliable volumes of produce. Neither side can easily reach the other, and transport is fragmented. DrukAgriLink sits in the middle: coordinators pool small harvests to fulfil big orders, and shared vehicles carry the produce from farm to buyer — with every step visible to everyone involved.
+Bhutan's farmers are small and geographically scattered, while institutional buyers (hospitals, schools, hotels, wholesalers) need large, reliable volumes of produce. Neither side can easily reach the other, and transport is fragmented. DrukAgriLink sits in the middle: coordinators pool small harvests to fulfil big orders, and shared vehicles carry the produce from farm to buyer — with every step visible to everyone involved.
 
 ## What it does
 
