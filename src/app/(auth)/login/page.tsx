@@ -112,7 +112,6 @@ export default function Login() {
           <p className="mt-5 text-center text-sm text-gray-500">
             No account? <Link href="/register" className="font-semibold text-forest hover:underline">Register</Link>
           </p>
-          <p className="mt-2 text-center text-xs text-gray-400">Demo: farmer1@druk.demo · Druk@2024</p>
         </div>
       </section>
     </main>
