@@ -27,21 +27,21 @@ export async function signUp(_prev: unknown, formData: FormData) {
   if (password !== confirm) return { error: "Passwords do not match." };
 
   const supabase = createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  // The profile row is created automatically by a database trigger
+  // (handle_new_user) that reads this metadata. This works even before
+  // the user confirms their email, unlike an app-side insert blocked by RLS.
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name, role, phone: phone || null },
+    },
+  });
   if (error) return { error: error.message };
 
-  const uid = data.user?.id;
-  if (uid) {
-    const { error: pErr } = await supabase.from("profiles").insert({
-      id: uid,
-      full_name,
-      role,
-      phone: phone || null,
-    });
-    if (pErr) return { error: "Account created but profile setup failed. Contact support." };
-  }
   return { success: true };
 }
+
 export async function signOut() {
   const supabase = createClient();
   await supabase.auth.signOut();
