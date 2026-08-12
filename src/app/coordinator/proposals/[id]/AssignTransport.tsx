@@ -49,6 +49,11 @@ export function AssignTransport({ proposalId, vehicles }: { proposalId: string; 
           <input name="delivery_date" type="date" className="input" />
         </div>
       </div>
+      <div>
+        <label className="label">Total transport cost (Nu.)</label>
+        <input name="transport_cost" type="number" min="0" step="0.01" className="input" placeholder="e.g. 5000" required />
+        <p className="mt-1 text-xs text-gray-400">Split across farmers in proportion to their sale value.</p>
+      </div>
       {state?.error && <p className="rounded-lg bg-crimson/10 px-3 py-2 text-sm text-crimson">{state.error}</p>}
       <button type="submit" className="btn-primary">Assign transport</button>
     </form>
