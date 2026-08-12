@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Sprout, Package, GitMerge } from "lucide-react";
+import { Plus, Sprout, Package, GitMerge, Wallet } from "lucide-react";
 import { requireRole } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
@@ -53,7 +53,8 @@ export default async function FarmerDashboard() {
             <p className="text-sm text-white/70">Kuzuzangpo la</p>
             <h1 className="text-2xl font-bold sm:text-3xl">{profile.full_name.split(" ")[0]}&apos;s farm desk</h1>
           </div>
-          <div className="reveal flex gap-2" style={{ animationDelay: "100ms" }}>
+          <div className="reveal flex flex-wrap gap-2" style={{ animationDelay: "100ms" }}>
+            <Link href="/farmer/earnings" className="btn border border-white/40 text-white hover:bg-white/10"><Wallet size={16} /> Earnings</Link>
             <Link href="/farmer/farms/new" className="btn border border-white/40 text-white hover:bg-white/10"><Plus size={16} /> Farm</Link>
             <Link href="/farmer/harvests/new" className="btn bg-saffron text-forest-dark hover:brightness-95"><Plus size={16} /> New harvest</Link>
           </div>
