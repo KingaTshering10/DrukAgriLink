@@ -9,7 +9,6 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
   const profile = await requireRole("coordinator");
   const supabase = createClient();
 
-  // Security: proposal must belong to this coordinator and be confirmed.
   const { data: proposal } = await supabase
     .from("match_proposals")
     .select("id,status")
@@ -30,7 +29,6 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
   if (!collection_location || !delivery_location) return { error: "Collection and delivery locations are required." };
   if (isNaN(transport_cost) || transport_cost < 0) return { error: "Enter a valid transport cost." };
 
-  // Vehicle must be available.
   const { data: vehicle } = await supabase
     .from("vehicles")
     .select("id,provider_id,available")
@@ -38,7 +36,7 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
     .single();
   if (!vehicle || !vehicle.available) return { error: "That vehicle is not available." };
 
-  // Create the shipment (with cost).
+  // Create the shipment. Transport cost is recorded here (charged to the buyer separately).
   const { data: shipment, error: shipErr } = await supabase
     .from("shipments")
     .insert({
@@ -58,34 +56,25 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
 
   await supabase.from("vehicles").update({ available: false }).eq("id", vehicle_id);
 
-  // Accepted allocations on this proposal.
+  // Generate farmer payments — FULL price, no transport deduction (farmers keep their full sale value).
   const { data: allocs } = await supabase
     .from("match_allocations")
     .select("id,farmer_id,listing_id,allocated_qty,unit_price")
     .eq("proposal_id", proposalId)
     .eq("status", "accepted");
 
-  const accepted = allocs ?? [];
-  const totalGross = accepted.reduce(
-    (sum, a: any) => sum + Number(a.allocated_qty) * Number(a.unit_price),
-    0
-  );
-
-  for (const a of accepted) {
+  for (const a of allocs ?? []) {
     const qty = Number((a as any).allocated_qty);
     const price = Number((a as any).unit_price);
-    const gross = qty * price;
-    const transportShare = totalGross > 0 ? (transport_cost * gross) / totalGross : 0;
-    const net = Math.max(0, gross - transportShare);
+    const gross = qty * price;               // farmer's full amount
+    const net = gross;                        // no deduction
 
-    // Product id from the harvest listing.
     const { data: listing } = await supabase
       .from("harvest_listings")
       .select("product_id")
       .eq("id", (a as any).listing_id)
       .single();
 
-    // Create the collection record (full breakdown) — surface errors.
     const { data: collection, error: colErr } = await supabase
       .from("collection_records")
       .insert({
@@ -98,7 +87,7 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
         accepted_qty: qty,
         rejected_qty: 0,
         unit_price: price,
-        transport_deduction: Number(transportShare.toFixed(2)),
+        transport_deduction: 0,               // farmers don't bear transport
         other_deduction: 0,
         net_amount_due: Number(net.toFixed(2)),
       })
@@ -106,7 +95,6 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
       .single();
     if (colErr) return { error: `Collection insert failed: ${colErr.message}` };
 
-    // Create the pending payment record — surface errors.
     if (collection?.id) {
       const { error: payErr } = await supabase.from("payment_records").insert({
         collection_record_id: collection.id,
@@ -118,7 +106,6 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
     }
   }
 
-  // Notify the transporter.
   await notify(
     vehicle.provider_id,
     "New trip assigned",
