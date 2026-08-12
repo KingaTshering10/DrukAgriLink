@@ -21,6 +21,44 @@ export default async function OrderDetail({ params }: { params: { id: string } }
   if (!order) notFound();
 
   const o = order as any;
+
+  // Charges: trace order → proposal → shipment (transport cost) and collection records (produce cost).
+  let produceCost = 0;
+  let transportCost = 0;
+  let hasShipment = false;
+
+  const { data: proposal } = await supabase
+    .from("match_proposals")
+    .select("id")
+    .eq("buyer_order_id", o.id)
+    .eq("status", "confirmed")
+    .maybeSingle();
+
+  if (proposal?.id) {
+    // Shipment (transport cost charged to the buyer).
+    const { data: shipment } = await supabase
+      .from("shipments")
+      .select("transport_cost")
+      .eq("proposal_id", proposal.id)
+      .maybeSingle();
+    if (shipment) {
+      hasShipment = true;
+      transportCost = Number((shipment as any).transport_cost ?? 0);
+    }
+
+    // Produce cost = sum of farmer net amounts for this deal's collection records.
+    const { data: collections } = await supabase
+      .from("collection_records")
+      .select("net_amount_due, shipments!inner(proposal_id)")
+      .eq("shipments.proposal_id", proposal.id);
+    produceCost = (collections ?? []).reduce(
+      (sum, c: any) => sum + Number(c.net_amount_due ?? 0),
+      0
+    );
+  }
+
+  const totalCost = produceCost + transportCost;
+
   const rows: [string, string][] = [
     ["Product", o.products?.name ?? "—"],
     ["Organization", o.buyer_organizations?.name ?? "—"],
@@ -50,6 +88,30 @@ export default async function OrderDetail({ params }: { params: { id: string } }
             </div>
           ))}
         </div>
+
+        {/* Charges breakdown — shown once the deal is confirmed and priced */}
+        {produceCost > 0 || transportCost > 0 ? (
+          <div className="card">
+            <p className="mb-2 text-sm font-semibold text-gray-500">Charges</p>
+            <div className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-500">Produce cost</span>
+                <span className="text-forest-dark">{formatNu(produceCost)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Transport {hasShipment ? "" : "(pending)"}</span>
+                <span className="text-forest-dark">{formatNu(transportCost)}</span>
+              </div>
+              <div className="flex justify-between border-t border-black/5 pt-2 font-semibold">
+                <span className="text-forest-dark">Total payable</span>
+                <span className="text-forest-dark">{formatNu(totalCost)}</span>
+              </div>
+            </div>
+            <p className="mt-2 text-xs text-gray-400">
+              Farmers receive the full produce price. Transport is charged separately.
+            </p>
+          </div>
+        ) : null}
 
         <div className="flex items-center justify-between">
           <Link href="/buyer/dashboard" className="btn-ghost">← Back to orders</Link>
