@@ -9,7 +9,7 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
   const profile = await requireRole("coordinator");
   const supabase = createClient();
 
-  // Security: the proposal must belong to this coordinator, and be confirmed.
+  // Security: proposal must belong to this coordinator and be confirmed.
   const { data: proposal } = await supabase
     .from("match_proposals")
     .select("id,status")
@@ -24,33 +24,99 @@ export async function assignTransport(proposalId: string, _prev: unknown, formDa
   const delivery_location = String(formData.get("delivery_location") ?? "").trim();
   const collection_date = String(formData.get("collection_date") ?? "").trim();
   const delivery_date = String(formData.get("delivery_date") ?? "").trim();
+  const transport_cost = Number(formData.get("transport_cost") ?? 0);
 
   if (!vehicle_id) return { error: "Please select a vehicle." };
   if (!collection_location || !delivery_location) return { error: "Collection and delivery locations are required." };
+  if (isNaN(transport_cost) || transport_cost < 0) return { error: "Enter a valid transport cost." };
 
-  // Look up the vehicle's provider (the transporter) and confirm it's available.
+  // Vehicle must be available.
   const { data: vehicle } = await supabase
     .from("vehicles")
-    .select("id,provider_id,available,registration_no")
+    .select("id,provider_id,available")
     .eq("id", vehicle_id)
     .single();
   if (!vehicle || !vehicle.available) return { error: "That vehicle is not available." };
 
-  // Create the shipment (starts as "assigned").
-  const { error } = await supabase.from("shipments").insert({
-    proposal_id: proposalId,
-    vehicle_id,
-    provider_id: vehicle.provider_id,
-    collection_location,
-    delivery_location,
-    collection_date: collection_date || null,
-    delivery_date: delivery_date || null,
-    status: "assigned",
-  });
-  if (error) return { error: error.message };
+  // Create the shipment (with cost).
+  const { data: shipment, error: shipErr } = await supabase
+    .from("shipments")
+    .insert({
+      proposal_id: proposalId,
+      vehicle_id,
+      provider_id: vehicle.provider_id,
+      collection_location,
+      delivery_location,
+      collection_date: collection_date || null,
+      delivery_date: delivery_date || null,
+      transport_cost,
+      status: "assigned",
+    })
+    .select("id")
+    .single();
+  if (shipErr || !shipment) return { error: shipErr?.message ?? "Failed to create shipment." };
 
-  // Mark the vehicle busy.
   await supabase.from("vehicles").update({ available: false }).eq("id", vehicle_id);
+
+  // Accepted allocations on this proposal.
+  const { data: allocs } = await supabase
+    .from("match_allocations")
+    .select("id,farmer_id,listing_id,allocated_qty,unit_price")
+    .eq("proposal_id", proposalId)
+    .eq("status", "accepted");
+
+  const accepted = allocs ?? [];
+  const totalGross = accepted.reduce(
+    (sum, a: any) => sum + Number(a.allocated_qty) * Number(a.unit_price),
+    0
+  );
+
+  for (const a of accepted) {
+    const qty = Number((a as any).allocated_qty);
+    const price = Number((a as any).unit_price);
+    const gross = qty * price;
+    const transportShare = totalGross > 0 ? (transport_cost * gross) / totalGross : 0;
+    const net = Math.max(0, gross - transportShare);
+
+    // Product id from the harvest listing.
+    const { data: listing } = await supabase
+      .from("harvest_listings")
+      .select("product_id")
+      .eq("id", (a as any).listing_id)
+      .single();
+
+    // Create the collection record (full breakdown) — surface errors.
+    const { data: collection, error: colErr } = await supabase
+      .from("collection_records")
+      .insert({
+        shipment_id: shipment.id,
+        allocation_id: (a as any).id,
+        farmer_id: (a as any).farmer_id,
+        product_id: (listing as any)?.product_id,
+        expected_qty: qty,
+        presented_qty: qty,
+        accepted_qty: qty,
+        rejected_qty: 0,
+        unit_price: price,
+        transport_deduction: Number(transportShare.toFixed(2)),
+        other_deduction: 0,
+        net_amount_due: Number(net.toFixed(2)),
+      })
+      .select("id")
+      .single();
+    if (colErr) return { error: `Collection insert failed: ${colErr.message}` };
+
+    // Create the pending payment record — surface errors.
+    if (collection?.id) {
+      const { error: payErr } = await supabase.from("payment_records").insert({
+        collection_record_id: collection.id,
+        farmer_id: (a as any).farmer_id,
+        amount: Number(net.toFixed(2)),
+        status: "pending",
+      });
+      if (payErr) return { error: `Payment insert failed: ${payErr.message}` };
+    }
+  }
 
   // Notify the transporter.
   await notify(
