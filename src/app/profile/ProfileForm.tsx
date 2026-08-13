@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import { DZONGKHAG_LIST, gewogsOf } from "@/lib/constants/bhutan-admin";
+import { DZONGKHAG_LIST, gewogsOf, chiwogsOf } from "@/lib/constants/bhutan-admin";
 import { updateProfile } from "./actions";
 
-type Initial = { full_name: string; role: string; phone: string; dzongkhag: string; gewog: string };
+type Initial = { full_name: string; role: string; phone: string; dzongkhag: string; gewog: string; chiwog: string };
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -14,9 +14,11 @@ function Submit() {
 export function ProfileForm({ initial }: { initial: Initial }) {
   const [dzongkhag, setDzongkhag] = useState(initial.dzongkhag);
   const [gewog, setGewog] = useState(initial.gewog);
+  const [chiwog, setChiwog] = useState(initial.chiwog);
   const [state, action] = useFormState(updateProfile, null as { error?: string; success?: boolean } | null);
 
   const gewogs = dzongkhag ? gewogsOf(dzongkhag) : [];
+  const chiwogs = dzongkhag && gewog ? chiwogsOf(dzongkhag, gewog) : [];
 
   return (
     <form action={action} className="card space-y-4">
@@ -41,7 +43,7 @@ export function ProfileForm({ initial }: { initial: Initial }) {
         <select
           id="dzongkhag" name="dzongkhag" className="input"
           value={dzongkhag}
-          onChange={(e) => { setDzongkhag(e.target.value); setGewog(""); }}
+          onChange={(e) => { setDzongkhag(e.target.value); setGewog(""); setChiwog(""); }}
         >
           <option value="">Select dzongkhag…</option>
           {DZONGKHAG_LIST.map((d) => <option key={d} value={d}>{d}</option>)}
@@ -53,11 +55,24 @@ export function ProfileForm({ initial }: { initial: Initial }) {
         <select
           id="gewog" name="gewog" className="input"
           value={gewog}
-          onChange={(e) => setGewog(e.target.value)}
+          onChange={(e) => { setGewog(e.target.value); setChiwog(""); }}
           disabled={!dzongkhag}
         >
           <option value="">{dzongkhag ? "Select gewog…" : "Select dzongkhag first"}</option>
           {gewogs.map((g) => <option key={g} value={g}>{g}</option>)}
+        </select>
+      </div>
+
+      <div>
+        <label className="label" htmlFor="chiwog">Chiwog / Village</label>
+        <select
+          id="chiwog" name="chiwog" className="input"
+          value={chiwog}
+          onChange={(e) => setChiwog(e.target.value)}
+          disabled={!gewog}
+        >
+          <option value="">{gewog ? "Select chiwog…" : "Select gewog first"}</option>
+          {chiwogs.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
       </div>
 
