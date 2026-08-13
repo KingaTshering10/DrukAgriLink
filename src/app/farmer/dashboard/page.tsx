@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Sprout, Package, GitMerge, Wallet } from "lucide-react";
+import { Plus, Sprout, Package, GitMerge, Wallet, Search } from "lucide-react";
 import { requireRole } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
@@ -8,9 +8,17 @@ import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
 import { AllocationActions } from "@/app/farmer/AllocationActions";
 
-export default async function FarmerDashboard() {
+export default async function FarmerDashboard({
+  searchParams,
+}: {
+  searchParams: { product?: string; status?: string };
+}) {
   const profile = await requireRole("farmer");
   const supabase = createClient();
+
+  const productFilter = (searchParams.product ?? "").trim();
+  const statusFilter = (searchParams.status ?? "").trim();
+  const hasFilter = Boolean(productFilter || statusFilter);
 
   const { count: unread } = await supabase
     .from("notifications").select("id", { count: "exact", head: true })
@@ -20,12 +28,19 @@ export default async function FarmerDashboard() {
     .from("farms").select("id").eq("farmer_id", profile.id);
   const hasFarm = (farms?.length ?? 0) > 0;
 
-  const { data: listings } = await supabase
+  // Products for the filter dropdown.
+  const { data: products } = await supabase.from("products").select("id,name").order("name");
+
+  // Harvests — filtered. Show all when filtering, else recent 5.
+  let listingsQuery = supabase
     .from("harvest_listings")
-    .select("id,forecast_qty,available_qty,unit,min_price,status,products(name)")
+    .select("id,forecast_qty,available_qty,unit,min_price,status,products!inner(name)")
     .eq("farmer_id", profile.id)
-    .order("created_at", { ascending: false })
-    .limit(5);
+    .order("created_at", { ascending: false });
+  if (productFilter) listingsQuery = listingsQuery.eq("products.name", productFilter);
+  if (statusFilter) listingsQuery = listingsQuery.eq("status", statusFilter);
+  if (!hasFilter) listingsQuery = listingsQuery.limit(5);
+  const { data: listings } = await listingsQuery;
 
   const { data: allocations } = await supabase
     .from("match_allocations")
@@ -40,6 +55,8 @@ export default async function FarmerDashboard() {
     { icon: Package, label: "Harvests", value: listings?.length ?? 0, accent: "#f4a300" },
     { icon: GitMerge, label: "Pending offers", value: pendingCount, accent: "#e8722b" },
   ];
+
+  const STATUSES = ["available", "partially_allocated", "fully_allocated", "collected", "draft", "cancelled"];
 
   return (
     <>
@@ -113,9 +130,36 @@ export default async function FarmerDashboard() {
           ) : <Empty title="No proposals" hint="Coordinators will send allocations here." />}
         </section>
 
-        {/* Recent harvests */}
+        {/* Harvests with filter */}
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-gray-500">Recent harvests</h2>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-500">
+              {hasFilter ? "Harvests (filtered)" : "Recent harvests"}
+            </h2>
+          </div>
+
+          {/* Filter bar */}
+          <form method="GET" className="card mb-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="label" htmlFor="product">Product</label>
+              <select id="product" name="product" className="input" defaultValue={productFilter}>
+                <option value="">All products</option>
+                {products?.map((p: any) => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="label" htmlFor="status">Status</label>
+              <select id="status" name="status" className="input" defaultValue={statusFilter}>
+                <option value="">All statuses</option>
+                {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" className="btn-primary"><Search size={16} /> Filter</button>
+              {hasFilter && <Link href="/farmer/dashboard" className="btn-ghost">Clear</Link>}
+            </div>
+          </form>
+
           {listings?.length ? (
             <div className="space-y-2">
               {listings.map((l: any) => (
@@ -137,7 +181,7 @@ export default async function FarmerDashboard() {
                 </Link>
               ))}
             </div>
-          ) : <Empty title="No harvests yet" hint="Publish your first listing to reach buyers." />}
+          ) : <Empty title={hasFilter ? "No matching harvests" : "No harvests yet"} hint={hasFilter ? "Try a different filter." : "Publish your first listing to reach buyers."} />}
         </section>
       </main>
     </>
