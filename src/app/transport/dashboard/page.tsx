@@ -40,9 +40,10 @@ export default async function TransportDashboard() {
             <p className="text-sm text-white/70">Transport desk</p>
             <h1 className="text-2xl font-bold sm:text-3xl">My fleet &amp; trips</h1>
           </div>
-          <Link href="/transport/vehicles/new" className="reveal btn bg-saffron text-forest-dark hover:brightness-95" style={{ animationDelay: "100ms" }}>
-            <Plus size={16} /> Add vehicle
-          </Link>
+          <div className="reveal flex gap-2" style={{ animationDelay: "100ms" }}>
+            <Link href="/transport/earnings" className="btn border border-white/40 text-white hover:bg-white/10"><Wallet size={16} /> Earnings</Link>
+            <Link href="/transport/vehicles/new" className="btn bg-saffron text-forest-dark hover:brightness-95"><Plus size={16} /> Add vehicle</Link>
+          </div>
         </div>
         <div className="h-1 w-full bg-gradient-to-r from-saffron via-marigold to-crimson" />
       </section>
