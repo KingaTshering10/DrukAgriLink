@@ -17,6 +17,7 @@ export default async function ProfilePage() {
             phone: p.phone ?? "",
             dzongkhag: p.dzongkhag ?? "",
             gewog: p.gewog ?? "",
+            chiwog: p.chiwog ?? "",
           }}
         />
       </main>
