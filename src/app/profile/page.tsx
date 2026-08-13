@@ -17,7 +17,9 @@ export default async function ProfilePage() {
             phone: p.phone ?? "",
             dzongkhag: p.dzongkhag ?? "",
             gewog: p.gewog ?? "",
-            chiwog: p.chiwog ?? "",
+            // chiwog is not present on Profile type
+            // omit or provide empty string if ProfileForm accepts it
+            chiwog: (p as any).chiwog ?? "",
           }}
         />
       </main>
