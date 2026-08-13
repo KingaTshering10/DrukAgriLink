@@ -11,10 +11,10 @@ export async function updateProfile(_prev: unknown, formData: FormData) {
   const phone = String(formData.get("phone") ?? "").trim();
   const dzongkhag = String(formData.get("dzongkhag") ?? "").trim();
   const gewog = String(formData.get("gewog") ?? "").trim();
+  const chiwog = String(formData.get("chiwog") ?? "").trim();
 
   if (!full_name) return { error: "Name is required." };
 
-  // Security: only ever update the logged-in user's own profile (id from session, never the form).
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -22,6 +22,7 @@ export async function updateProfile(_prev: unknown, formData: FormData) {
       phone: phone || null,
       dzongkhag: dzongkhag || null,
       gewog: gewog || null,
+      chiwog: chiwog || null,
     })
     .eq("id", profile.id);
 
