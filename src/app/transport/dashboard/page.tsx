@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, Truck, Package, Snowflake } from "lucide-react";
+import { Plus, Truck, Package, Snowflake, Wallet} from "lucide-react";
 import { requireRole } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
