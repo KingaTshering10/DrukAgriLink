@@ -16,16 +16,18 @@ export function NotificationBell({ userId, initialUnread }: { userId: string; in
         "postgres_changes",
         {
           event: "INSERT",
-          schema: "publicpasted ",
+          schema: "public",
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        () => {
-          // A new notification for this user arrived — bump the badge live.
+        (payload) => {
+          console.log("Realtime notification received:", payload);
           setUnread((n) => n + 1);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Realtime subscription status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
