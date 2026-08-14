@@ -1,32 +1,56 @@
 import Link from "next/link";
-import { Plus, Truck, Package, Snowflake, Wallet} from "lucide-react";
+import { Plus, Truck, Package, Snowflake, Wallet, Search } from "lucide-react";
 import { requireRole } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Empty } from "@/components/ui/Empty";
 
-export default async function TransportDashboard() {
+export default async function TransportDashboard({
+  searchParams,
+}: {
+  searchParams: { status?: string };
+}) {
   const profile = await requireRole("transport");
   const supabase = createClient();
+
+  const statusFilter = (searchParams.status ?? "").trim();
+  const hasFilter = Boolean(statusFilter);
 
   const { count: unread } = await supabase
     .from("notifications").select("id", { count: "exact", head: true })
     .eq("user_id", profile.id).eq("read", false);
 
-  const [{ data: vehicles }, { data: trips }] = await Promise.all([
-    supabase.from("vehicles").select("id,registration_no,vehicle_type,capacity_kg,refrigerated,service_area,available").eq("provider_id", profile.id),
-    supabase.from("shipments").select("id,collection_date,delivery_date,collection_location,delivery_location,status").eq("provider_id", profile.id).order("created_at", { ascending: false }),
-  ]);
+  const { data: vehicles } = await supabase
+    .from("vehicles")
+    .select("id,registration_no,vehicle_type,capacity_kg,refrigerated,service_area,available")
+    .eq("provider_id", profile.id);
+
+  // Trips — filtered by status.
+  let tripsQuery = supabase
+    .from("shipments")
+    .select("id,collection_date,delivery_date,collection_location,delivery_location,status")
+    .eq("provider_id", profile.id)
+    .order("created_at", { ascending: false });
+  if (statusFilter) tripsQuery = tripsQuery.eq("status", statusFilter);
+  const { data: trips } = await tripsQuery;
+
+  // Separate unfiltered set for accurate stats.
+  const { data: allTrips } = await supabase
+    .from("shipments")
+    .select("status")
+    .eq("provider_id", profile.id);
 
   const hasVehicle = (vehicles?.length ?? 0) > 0;
-  const activeTrips = trips?.filter((t: any) => !["delivered", "cancelled"].includes(t.status)).length ?? 0;
+  const activeTrips = allTrips?.filter((t: any) => !["delivered", "cancelled"].includes(t.status)).length ?? 0;
 
   const stats = [
     { icon: Truck, label: "Vehicles", value: vehicles?.length ?? 0, accent: "#1f5c3d" },
     { icon: Package, label: "Active trips", value: activeTrips, accent: "#f4a300" },
-    { icon: Package, label: "Total trips", value: trips?.length ?? 0, accent: "#e8722b" },
+    { icon: Package, label: "Total trips", value: allTrips?.length ?? 0, accent: "#e8722b" },
   ];
+
+  const STATUSES = ["assigned", "accepted", "collecting", "in_transit", "delivered", "cancelled"];
 
   return (
     <>
@@ -86,8 +110,7 @@ export default async function TransportDashboard() {
                     <div className="min-w-0">
                       <p className="font-semibold text-forest-dark">{v.registration_no}</p>
                       <p className="truncate text-sm text-gray-500">
-                        {v.vehicle_type} · {v.capacity_kg ?? "—"} kg
-                        {v.service_area ? ` · ${v.service_area}` : ""}
+                        {v.vehicle_type} · {v.capacity_kg ?? "—"} kg{v.service_area ? ` · ${v.service_area}` : ""}
                       </p>
                     </div>
                   </div>
@@ -105,9 +128,27 @@ export default async function TransportDashboard() {
           ) : <Empty title="No vehicles registered" hint="Add a vehicle to start receiving trips." />}
         </section>
 
-        {/* Assigned trips — clickable to detail page */}
+        {/* Assigned trips with status filter */}
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-gray-500">Assigned trips</h2>
+          <h2 className="mb-3 text-sm font-semibold text-gray-500">
+            {hasFilter ? "Assigned trips (filtered)" : "Assigned trips"}
+          </h2>
+
+          {/* Filter bar */}
+          <form method="GET" className="card mb-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="label" htmlFor="status">Status</label>
+              <select id="status" name="status" className="input" defaultValue={statusFilter}>
+                <option value="">All statuses</option>
+                {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" className="btn-primary"><Search size={16} /> Filter</button>
+              {hasFilter && <Link href="/transport/dashboard" className="btn-ghost">Clear</Link>}
+            </div>
+          </form>
+
           {trips?.length ? (
             <div className="space-y-2">
               {trips.map((t: any) => (
@@ -125,7 +166,7 @@ export default async function TransportDashboard() {
                 </Link>
               ))}
             </div>
-          ) : <Empty title="No trips assigned" hint="Coordinators will assign trips here once your vehicle is available." />}
+          ) : <Empty title={hasFilter ? "No matching trips" : "No trips assigned"} hint={hasFilter ? "Try a different status." : "Coordinators will assign trips here once your vehicle is available."} />}
         </section>
       </main>
     </>
