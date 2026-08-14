@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sprout, User } from "lucide-react";
+import { Sprout, User, Bell } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
 import { NotificationBell } from "./NotificationBell";
 
