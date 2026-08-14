@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus, ShoppingCart, Clock, CheckCircle2 } from "lucide-react";
+import { Plus, ShoppingCart, Clock, CheckCircle2, Search } from "lucide-react";
 import { requireRole } from "@/lib/auth/guard";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
@@ -8,9 +8,17 @@ import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
 import { ProposalActions } from "@/app/buyer/ProposalActions";
 
-export default async function BuyerDashboard() {
+export default async function BuyerDashboard({
+  searchParams,
+}: {
+  searchParams: { product?: string; status?: string };
+}) {
   const profile = await requireRole("buyer");
   const supabase = createClient();
+
+  const productFilter = (searchParams.product ?? "").trim();
+  const statusFilter = (searchParams.status ?? "").trim();
+  const hasFilter = Boolean(productFilter || statusFilter);
 
   const { count: unread } = await supabase
     .from("notifications").select("id", { count: "exact", head: true })
@@ -20,11 +28,17 @@ export default async function BuyerDashboard() {
     .from("buyer_organizations").select("id").eq("owner_id", profile.id);
   const hasOrg = (orgs?.length ?? 0) > 0;
 
-  const { data: orders } = await supabase
+  const { data: products } = await supabase.from("products").select("id,name").order("name");
+
+  // Orders — filtered.
+  let ordersQuery = supabase
     .from("buyer_orders")
-    .select("id,required_qty,unit,offered_price,required_delivery_date,status,products(name),buyer_organizations!inner(owner_id)")
+    .select("id,required_qty,unit,offered_price,required_delivery_date,status,products!inner(name),buyer_organizations!inner(owner_id)")
     .eq("buyer_organizations.owner_id", profile.id)
     .order("created_at", { ascending: false });
+  if (productFilter) ordersQuery = ordersQuery.eq("products.name", productFilter);
+  if (statusFilter) ordersQuery = ordersQuery.eq("status", statusFilter);
+  const { data: orders } = await ordersQuery;
 
   const { data: proposals } = await supabase
     .from("match_proposals")
@@ -33,15 +47,23 @@ export default async function BuyerDashboard() {
     .eq("status", "pending_farmers")
     .order("created_at", { ascending: false });
 
-  const total = orders?.length ?? 0;
-  const openCount = orders?.filter((o: any) => o.status === "open").length ?? 0;
-  const confirmedCount = orders?.filter((o: any) => o.status === "confirmed").length ?? 0;
+  // Stats from unfiltered totals — fetch a lightweight count set separately so filtering doesn't skew them.
+  const { data: allOrders } = await supabase
+    .from("buyer_orders")
+    .select("status,buyer_organizations!inner(owner_id)")
+    .eq("buyer_organizations.owner_id", profile.id);
+
+  const total = allOrders?.length ?? 0;
+  const openCount = allOrders?.filter((o: any) => o.status === "open").length ?? 0;
+  const confirmedCount = allOrders?.filter((o: any) => o.status === "confirmed").length ?? 0;
 
   const stats = [
     { icon: ShoppingCart, label: "Total orders", value: total, accent: "#1f5c3d" },
     { icon: Clock, label: "Open", value: openCount, accent: "#f4a300" },
     { icon: CheckCircle2, label: "Confirmed", value: confirmedCount, accent: "#e8722b" },
   ];
+
+  const STATUSES = ["open", "confirmed", "partially_allocated", "fulfilled", "cancelled"];
 
   return (
     <>
@@ -106,9 +128,34 @@ export default async function BuyerDashboard() {
           </section>
         ) : null}
 
-        {/* Orders */}
+        {/* Orders with filter */}
         <section>
-          <h2 className="mb-3 text-sm font-semibold text-gray-500">Your orders</h2>
+          <h2 className="mb-3 text-sm font-semibold text-gray-500">
+            {hasFilter ? "Your orders (filtered)" : "Your orders"}
+          </h2>
+
+          {/* Filter bar */}
+          <form method="GET" className="card mb-3 flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="label" htmlFor="product">Product</label>
+              <select id="product" name="product" className="input" defaultValue={productFilter}>
+                <option value="">All products</option>
+                {products?.map((p: any) => <option key={p.id} value={p.name}>{p.name}</option>)}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="label" htmlFor="status">Status</label>
+              <select id="status" name="status" className="input" defaultValue={statusFilter}>
+                <option value="">All statuses</option>
+                {STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" className="btn-primary"><Search size={16} /> Filter</button>
+              {hasFilter && <Link href="/buyer/dashboard" className="btn-ghost">Clear</Link>}
+            </div>
+          </form>
+
           {orders?.length ? (
             <div className="space-y-2">
               {orders.map((o: any) => (
@@ -130,7 +177,7 @@ export default async function BuyerDashboard() {
                 </Link>
               ))}
             </div>
-          ) : <Empty title="No orders yet" hint="Create a procurement order to receive proposals." />}
+          ) : <Empty title={hasFilter ? "No matching orders" : "No orders yet"} hint={hasFilter ? "Try a different filter." : "Create a procurement order to receive proposals."} />}
         </section>
       </main>
     </>
