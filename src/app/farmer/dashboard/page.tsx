@@ -28,10 +28,8 @@ export default async function FarmerDashboard({
     .from("farms").select("id").eq("farmer_id", profile.id);
   const hasFarm = (farms?.length ?? 0) > 0;
 
-  // Products for the filter dropdown.
   const { data: products } = await supabase.from("products").select("id,name").order("name");
 
-  // Harvests — filtered. Show all when filtering, else recent 5.
   let listingsQuery = supabase
     .from("harvest_listings")
     .select("id,forecast_qty,available_qty,unit,min_price,status,products!inner(name)")
@@ -107,34 +105,11 @@ export default async function FarmerDashboard({
           </div>
         )}
 
-        {/* Match opportunities */}
-        <section>
-          <h2 className="mb-3 text-sm font-semibold text-gray-500">Match opportunities</h2>
-          {allocations?.length ? (
-            <div className="space-y-2">
-              {allocations.map((a: any) => (
-                <div
-                  key={a.id}
-                  className={`card flex items-center justify-between ${a.status === "proposed" ? "border-l-4 border-l-saffron" : ""}`}
-                >
-                  <div>
-                    <p className="font-semibold text-forest-dark">{a.allocated_qty} units @ {formatNu(a.unit_price)}</p>
-                    <p className="text-sm text-gray-500">Proposed allocation</p>
-                  </div>
-                  {a.status === "proposed"
-                    ? <AllocationActions allocationId={a.id} />
-                    : <StatusBadge status={a.status} />}
-                </div>
-              ))}
-            </div>
-          ) : <Empty title="No proposals" hint="Coordinators will send allocations here." />}
-        </section>
-
-        {/* Harvests with filter */}
+        {/* FILTER + HARVESTS — moved to the top for visibility */}
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-500">
-              {hasFilter ? "Harvests (filtered)" : "Recent harvests"}
+              {hasFilter ? "Harvests (filtered)" : "Your harvests"}
             </h2>
           </div>
 
@@ -182,6 +157,29 @@ export default async function FarmerDashboard({
               ))}
             </div>
           ) : <Empty title={hasFilter ? "No matching harvests" : "No harvests yet"} hint={hasFilter ? "Try a different filter." : "Publish your first listing to reach buyers."} />}
+        </section>
+
+        {/* Match opportunities — now below harvests */}
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-gray-500">Match opportunities</h2>
+          {allocations?.length ? (
+            <div className="space-y-2">
+              {allocations.map((a: any) => (
+                <div
+                  key={a.id}
+                  className={`card flex items-center justify-between ${a.status === "proposed" ? "border-l-4 border-l-saffron" : ""}`}
+                >
+                  <div>
+                    <p className="font-semibold text-forest-dark">{a.allocated_qty} units @ {formatNu(a.unit_price)}</p>
+                    <p className="text-sm text-gray-500">Proposed allocation</p>
+                  </div>
+                  {a.status === "proposed"
+                    ? <AllocationActions allocationId={a.id} />
+                    : <StatusBadge status={a.status} />}
+                </div>
+              ))}
+            </div>
+          ) : <Empty title="No proposals" hint="Coordinators will send allocations here." />}
         </section>
       </main>
     </>
