@@ -58,7 +58,7 @@ export default async function FarmerDashboard({
 
   return (
     <>
-      <AppHeader name={profile.full_name} role="Farmer" unread={unread ?? 0} />
+      <AppHeader name={profile.full_name} role="Farmer" unread={unread ?? 0} userId={profile.id} />
 
       {/* Gradient header */}
       <section className="relative overflow-hidden bg-gradient-to-br from-forest to-forest-dark">
