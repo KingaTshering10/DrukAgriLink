@@ -6,6 +6,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
+import { CountUp } from "@/components/CountUp";
 
 export default async function CoordinatorDashboard({
   searchParams,
