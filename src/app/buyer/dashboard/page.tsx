@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
 import { ProposalActions } from "@/app/buyer/ProposalActions";
+import { CountUp } from "@/components/CountUp";
 
 export default async function BuyerDashboard({
   searchParams,
