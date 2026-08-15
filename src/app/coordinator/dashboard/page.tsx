@@ -82,7 +82,7 @@ export default async function CoordinatorDashboard({
                 <s.icon size={18} />
               </div>
               <div>
-                <p className="text-xl font-bold text-forest-dark sm:text-2xl">{s.value}</p>
+                <p className="text-xl font-bold text-forest-dark sm:text-2xl"><CountUp end={s.value} /></p>
                 <p className="text-xs text-gray-500">{s.label}</p>
               </div>
             </div>
