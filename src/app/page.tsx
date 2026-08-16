@@ -33,6 +33,7 @@ export default function Landing() {
           </p>
           <div className="reveal mt-8 flex flex-wrap gap-3" style={{ animationDelay: "400ms" }}>
             <Link href="/register" className="btn bg-saffron text-forest-dark hover:brightness-95">Get started</Link>
+            <Link href="/browse" className="btn border border-white/40 text-white hover:bg-white/10">Browse marketplace</Link>
             <Link href="/login" className="btn border border-white/40 text-white hover:bg-white/10">Log in</Link>
           </div>
         </div>
