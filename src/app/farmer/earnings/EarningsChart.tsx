@@ -28,7 +28,7 @@ export function EarningsChart({ paid, pending }: { paid: number; pending: number
           >
             {data.map((d) => <Cell key={d.name} fill={d.color} />)}
           </Pie>
-          <Tooltip formatter={(v: number) => formatNu(v)} />
+          <Tooltip formatter={(v) => formatNu(Number(v))} />
           <Legend />
         </PieChart>
       </ResponsiveContainer>
