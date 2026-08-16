@@ -8,7 +8,10 @@ Key facts:
 - Prices are in Bhutanese Ngultrum (Nu.).
 - Users can filter their dashboards by product and status, edit their profile, and see real-time notifications.
 
-Answer questions about how to use the platform clearly and concisely. Be warm and helpful. If asked something unrelated to DrukAgriLink or farming/agriculture logistics, gently steer back. Keep answers short (a few sentences).`;
+Answer questions about how to use the platform clearly and concisely. Be warm and helpful. If asked something unrelated, gently steer back. Keep answers short (a few sentences).`;
+
+// Current Gemini Flash models (Aug 2026). We try the newest, then fall back.
+const MODELS = ["gemini-3.7-flash", "gemini-3.6-flash", "gemini-flash-latest"];
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,35 +22,44 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "AI is not configured." }, { status: 500 });
+      return NextResponse.json({ error: "AI is not configured (no key found)." }, { status: 500 });
     }
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ role: "user", parts: [{ text: message }] }],
-        }),
+    const body = JSON.stringify({
+      system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+      contents: [{ role: "user", parts: [{ text: message }] }],
+    });
+
+    let lastErr = "";
+    for (const model of MODELS) {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body,
+        }
+      );
+
+      const raw = await res.text();
+
+      if (res.ok) {
+        const data = JSON.parse(raw);
+        const reply =
+          data?.candidates?.[0]?.content?.parts?.[0]?.text ??
+          "Sorry, I couldn't come up with a response.";
+        return NextResponse.json({ reply });
       }
-    );
 
-    if (!res.ok) {
-      const err = await res.text();
-      console.error("Gemini API error:", err);
-      return NextResponse.json({ error: "The assistant couldn't respond right now." }, { status: 502 });
+      lastErr = raw;
+      // If it's a "model not found", try the next model; otherwise stop.
+      if (res.status !== 404) break;
     }
 
-    const data = await res.json();
-    const reply =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ??
-      "Sorry, I couldn't come up with a response.";
-
-    return NextResponse.json({ reply });
-  } catch (e) {
+    console.error("Gemini API error:", lastErr);
+    return NextResponse.json({ error: `Gemini error: ${lastErr.slice(0, 300)}` }, { status: 502 });
+  } catch (e: any) {
     console.error("Chat route error:", e);
-    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
+    return NextResponse.json({ error: `Server error: ${e?.message ?? "unknown"}` }, { status: 500 });
   }
 }

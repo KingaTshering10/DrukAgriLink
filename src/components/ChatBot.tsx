@@ -11,9 +11,71 @@ export function ChatBot() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showHint, setShowHint] = useState(true);
+
+  // Draggable button position (bottom-right by default via CSS; we track an offset).
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const dragState = useRef({ dragging: false, moved: false, startX: 0, startY: 0, offX: 0, offY: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
+
+  // Hide the "Need help?" hint after a while.
+  useEffect(() => {
+    const t = setTimeout(() => setShowHint(false), 6000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // --- Dragging logic (mouse + touch), with a threshold so a tap still opens ---
+  function onPointerDown(clientX: number, clientY: number) {
+    const rect = btnRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    dragState.current = {
+      dragging: true,
+      moved: false,
+      startX: clientX,
+      startY: clientY,
+      offX: clientX - rect.left,
+      offY: clientY - rect.top,
+    };
+  }
+  function onPointerMove(clientX: number, clientY: number) {
+    const d = dragState.current;
+    if (!d.dragging) return;
+    const dist = Math.hypot(clientX - d.startX, clientY - d.startY);
+    if (dist > 5) d.moved = true; // moved enough → it's a drag, not a tap
+    if (d.moved) {
+      const size = 56;
+      const x = Math.min(Math.max(0, clientX - d.offX), window.innerWidth - size);
+      const y = Math.min(Math.max(0, clientY - d.offY), window.innerHeight - size);
+      setPos({ x, y });
+      setShowHint(false);
+    }
+  }
+  function onPointerUp() {
+    const wasMove = dragState.current.moved;
+    dragState.current.dragging = false;
+    // If it wasn't a drag, treat as a click → toggle the chat.
+    if (!wasMove) setOpen((o) => !o);
+  }
+
+  useEffect(() => {
+    const mm = (e: MouseEvent) => onPointerMove(e.clientX, e.clientY);
+    const mu = () => { if (dragState.current.dragging) onPointerUp(); };
+    const tm = (e: TouchEvent) => { const t = e.touches[0]; if (t) onPointerMove(t.clientX, t.clientY); };
+    const tu = () => { if (dragState.current.dragging) onPointerUp(); };
+    window.addEventListener("mousemove", mm);
+    window.addEventListener("mouseup", mu);
+    window.addEventListener("touchmove", tm, { passive: true });
+    window.addEventListener("touchend", tu);
+    return () => {
+      window.removeEventListener("mousemove", mm);
+      window.removeEventListener("mouseup", mu);
+      window.removeEventListener("touchmove", tm);
+      window.removeEventListener("touchend", tu);
+    };
+  }, []);
 
   async function send() {
     const text = input.trim();
@@ -36,20 +98,41 @@ export function ChatBot() {
     }
   }
 
+  // Button position: use dragged pos if present, else default bottom-right.
+  const btnStyle: React.CSSProperties = pos
+    ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
+    : { right: 20, bottom: 20 };
+
   return (
     <>
-      {/* Floating button */}
+      {/* "Need help?" label */}
+      {!open && showHint && !pos && (
+        <div className="fixed bottom-7 right-24 z-50 animate-fade-up rounded-full bg-forest px-3 py-1.5 text-xs font-semibold text-white shadow-lg">
+          Need help? 💬
+        </div>
+      )}
+
+      {/* Floating draggable button with pulse */}
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-5 right-5 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-forest text-white shadow-lg transition hover:scale-105 hover:bg-forest-dark"
-        aria-label="Open help assistant"
+        ref={btnRef}
+        onMouseDown={(e) => onPointerDown(e.clientX, e.clientY)}
+        onTouchStart={(e) => { const t = e.touches[0]; if (t) onPointerDown(t.clientX, t.clientY); }}
+        style={btnStyle}
+        className="fixed z-50 inline-flex h-14 w-14 cursor-grab touch-none items-center justify-center rounded-full bg-forest text-white shadow-lg transition-transform hover:scale-105 active:cursor-grabbing active:scale-95"
+        aria-label="Help assistant (tap to open, drag to move)"
       >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
+        {!open && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-forest opacity-40" />}
+        <span className="relative">{open ? <X size={22} /> : <MessageCircle size={22} />}</span>
       </button>
 
-      {/* Chat panel */}
+      {/* Chat panel — anchors near the button */}
       {open && (
-        <div className="toast-in fixed bottom-24 right-5 z-50 flex h-[28rem] w-80 max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl">
+        <div
+          className="toast-in fixed z-50 flex h-[28rem] w-80 max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-2xl"
+          style={pos
+            ? { left: Math.min(pos.x, window.innerWidth - 340), top: Math.max(10, pos.y - 460) }
+            : { right: 20, bottom: 88 }}
+        >
           <div className="bg-gradient-to-r from-forest to-forest-dark px-4 py-3 text-white">
             <p className="font-semibold">DrukAgriLink Assistant</p>
             <p className="text-xs text-white/70">Ask me how the platform works</p>
