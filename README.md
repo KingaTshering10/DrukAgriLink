@@ -1,8 +1,8 @@
 # DrukAgriLink
 
-**A farm-to-market coordination platform for Bhutan.** DrukAgriLink connects smallholder farmers, institutional buyers, coordinators, and transporters so that scattered harvests can be pooled to meet large orders and moved efficiently across the country — from harvest listing through matching, approval, transport, and delivery.
+**A farm-to-market coordination platform for Bhutan.** DrukAgriLink connects smallholder farmers, institutional buyers, coordinators, and transporters so that scattered harvests can be pooled to meet large orders and moved efficiently across the country — from harvest listing through matching, approval, transport, delivery, and transparent payment.
 
-🌐 **Live demo:** [druk-agri-link.vercel.app](https://druk-agri-link.vercel.app)
+🌐 **Live:** [druk-agri-link.vercel.app](https://druk-agri-link.vercel.app) · **Browse the marketplace (no login):** [/browse](https://druk-agri-link.vercel.app/browse)
 
 The architecture is deliberately simple: Next.js (App Router) with server actions talking directly to Supabase. No separate backend.
 
@@ -14,12 +14,12 @@ Bhutan's farmers are small and geographically scattered, while institutional buy
 
 ## What it does
 
-The platform supports four roles, each with its own workspace and server-side enforcement:
+Four roles, each with its own workspace and server-side enforcement:
 
-- **Farmers** publish harvest listings (product, quantity, grade, price, location) and accept or decline allocation offers.
-- **Buyers** create procurement orders on behalf of their organization and approve or reject proposed matches.
-- **Coordinators** pool farmer supply to meet buyer demand, build match proposals with a plain-language summary, and assign transport.
-- **Transporters** register vehicles, receive assigned trips, and update delivery status stage by stage.
+- **Farmers** publish harvest listings, accept or decline allocation offers, and see their earnings.
+- **Buyers** create procurement orders, approve matches, and see a transparent cost breakdown.
+- **Coordinators** pool farmer supply to meet buyer demand, build match proposals, and assign transport.
+- **Transporters** register vehicles, receive assigned trips, update delivery status, and see their earnings.
 
 ### The end-to-end workflow
 
@@ -34,19 +34,22 @@ Coordinator assigns a vehicle  ──►  Transporter delivers
                                     (assigned → accepted → collecting → in transit → delivered)
 ```
 
-At each meaningful step, the relevant parties receive **in-app notifications**, so farmers, buyers, and coordinators always know where a deal — and the produce — stands.
+At every meaningful step, the relevant parties are notified — **in real time**, with the notification badge updating live and a toast sliding in without a page refresh.
 
 ## Key features
 
-- **Four roles** — farmer, buyer, coordinator, transport — with role-based access control and Postgres row-level security (RLS) enforcing per-user data isolation.
-- **Complete coordination workflow** from harvest listing through matching, multi-party approval, transport assignment, and delivery status updates.
-- **Plain-language match summaries** (fulfilment %, farmer count, average price) instead of an opaque score.
-- **In-app notification system** with unread badges, mark-as-read, and clickable notifications that deep-link to the relevant record; all parties are notified at each transport stage.
-- **Full CRUD** on orders and harvests (create, view, edit, delete) with ownership checks.
+- **Four roles** with role-based access control and Postgres row-level security (RLS) enforcing per-user data isolation.
+- **Complete coordination workflow** from harvest listing through matching, multi-party approval, transport assignment, and delivery tracking.
+- **Real-time notifications** — live unread badge and toast popups via Supabase Realtime, delivered to all parties at each transport stage.
+- **Transparent payments model** — farmers receive their full produce price; transport is charged separately to the buyer. Every party sees their side: farmers see per-payment breakdowns (gross, deductions, net) with paid/pending status, buyers see produce + transport = total, transporters see their trip earnings.
+- **Full CRUD** on orders and harvests with ownership checks.
 - **Vehicle registration and transport assignment** — transporters register vehicles; coordinators assign an available vehicle to a confirmed order, creating a tracked shipment.
-- **Authoritative Bhutanese location data** — a 1,051-record Dzongkhag → Gewog → Chiwog administrative hierarchy powers a cascading location selector for standardized geographic entry.
-- **Decimal-safe money math** for collection and payment records.
-- **Responsive, culturally themed UI** with a cohesive design across landing, authentication, and every role's dashboard.
+- **Search and filter** across all four dashboards (by product, status, and location).
+- **Profile editing** with the full Bhutanese administrative hierarchy.
+- **Authoritative Bhutanese location data** — a 1,051-record Dzongkhag → Gewog → Chiwog hierarchy powers cascading location selectors for standardized geographic entry.
+- **Public marketplace page** — a secure, login-free `/browse` view of available produce and open demand, exposed through database views that reveal only non-sensitive columns.
+- **Data visualization** — an earnings breakdown chart (Recharts) and animated count-up statistics.
+- **Responsive, culturally themed UI** with subtle, accessible animations (respects `prefers-reduced-motion`).
 
 ## Technology stack
 
@@ -54,42 +57,24 @@ At each meaningful step, the relevant parties receive **in-app notifications**, 
 |-------|-----------|
 | Framework | Next.js 14 (App Router, Server Actions) |
 | Language | TypeScript |
-| Database & Auth | Supabase (PostgreSQL, Auth, Row-Level Security) |
+| Database & Auth | Supabase (PostgreSQL, Auth, Row-Level Security, Realtime) |
 | Styling | Tailwind CSS |
-| Validation | Zod |
-| Money math | decimal.js |
+| Charts | Recharts |
 | Icons | Lucide |
-| Testing | Vitest |
 | Deployment | Vercel (continuous deployment from GitHub) |
 
 ## Architecture notes
 
-- **Server Actions** handle all mutations (creating orders, responding to proposals, assigning transport), keeping data logic on the server and out of the client.
+- **Server Actions** handle all mutations (creating orders, responding to proposals, assigning transport, generating payments), keeping data logic on the server.
 - **Row-Level Security** is the primary data-isolation boundary; server actions additionally verify ownership before sensitive writes.
+- **Real-time** uses a client component subscribed to the user's own notification rows; RLS governs what the subscription is allowed to deliver.
+- **The public marketplace** reads from dedicated database views that expose only safe columns (product, quantity, price, general location) — never farmer or buyer identities.
 - **Notifications** are written as a side effect of workflow transitions; recipient lists are de-duplicated and defensively guarded so a missing link never breaks a status update.
-
-## Repository structure
-
-```
-supabase/
-  migrations/0001_init.sql   # tables, enums, triggers, RLS policies
-  seed.sql                   # fictional Bhutan demo data
-src/
-  app/                       # routes (public, farmer, buyer, coordinator, transport, shared)
-  components/                # UI (status badge, header, empty state, location picker)
-  lib/
-    supabase/                # browser + server clients, session middleware
-    auth/                    # roles + server-side route guards
-    validation/schemas.ts    # Zod schemas (harvest, order, matching)
-    finance/calc.ts          # decimal-safe money calculations
-    matching/match.ts        # match validation + summary text
-    constants/               # Bhutan administrative data (dzongkhag/gewog/chiwog), products
-    tests/                   # Vitest suite
-```
+- **A database trigger** creates each user's profile row on signup, so profile creation works correctly even with email confirmation enabled.
 
 ## Requirements
 
-- Node.js 18+ (tested on 22)
+- Node.js 18+
 - A free Supabase project
 
 ## Installation
@@ -97,7 +82,10 @@ src/
 ```bash
 npm install
 cp .env.example .env.local   # then fill in your Supabase values
+npm run dev
 ```
+
+Then open [http://localhost:3000](http://localhost:3000).
 
 ## Environment variables
 
@@ -105,7 +93,6 @@ cp .env.example .env.local   # then fill in your Supabase values
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (safe for the browser) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-only; optional, for scripted seeding |
 
 Never commit `.env.local`. Only `.env.example` (placeholders) is tracked.
 
@@ -113,32 +100,18 @@ Never commit `.env.local`. Only `.env.example` (placeholders) is tracked.
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Project Settings → API: copy the URL + anon key into `.env.local`.
-3. SQL Editor → run `supabase/migrations/0001_init.sql`.
-4. SQL Editor → run `supabase/seed.sql` for demo data.
+3. Run the SQL in `supabase/migrations/` to create tables, enums, triggers, and RLS policies.
+4. Enable Realtime on the `notifications` table.
 
-The migration creates every table with UUID ids, `created_at`/`updated_at`, `numeric()` money columns, and RLS policies. The seed inserts fictional farmers, buyers, transport providers, vehicles, products, listings, and orders. All people, phone numbers, and organizations are fictional. Currency shows as `Nu.` (BTN).
-
-To try the app, register a fresh account through the sign-up page and choose a role.
-
-## Development commands
-
-```bash
-npm run dev         # start dev server (http://localhost:3000)
-npm run lint        # ESLint
-npm run typecheck   # tsc --noEmit
-npm test            # Vitest
-npm run build       # production build
-npm start           # run the production build
-```
+To try the app, register a fresh account through the sign-up page and choose a role. Currency is shown in Bhutanese Ngultrum (Nu. / BTN).
 
 ## Roadmap
 
-Natural next steps beyond the current build:
-
-- Collection-entry and farmer payment-receipt views (money math and status tracking already in place).
-- Real payment processing and SMS/email notifications.
-- Verified Dzongkha translations and an i18n switcher.
-- GPS tracking and route optimization for transport.
+- Ratings and reviews between parties
+- More dashboard analytics (trends over time)
+- Real payment processing and SMS/email notifications
+- Verified Dzongkha translations and an i18n switcher
+- GPS tracking and route optimization for transport
 
 ## Author
 
