@@ -90,7 +90,7 @@ export function ChatBot() {
         body: JSON.stringify({ message: text }),
       });
       const data = await res.json();
-      setMessages((m) => [...m, { role: "bot", text: data.reply ?? data.error ?? "Sorry, something went wrong." }]);
+      setMessages((m) => [...m, { role: "bot", text: data.reply ?? "Sorry, something went wrong. Please try again." }]);
     } catch {
       setMessages((m) => [...m, { role: "bot", text: "I couldn't reach the assistant. Please try again." }]);
     } finally {
