@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/AppHeader";
 import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
+import { EarningsChart } from "./EarningsChart";
 
 export default async function FarmerEarnings() {
   const profile = await requireRole("farmer");
