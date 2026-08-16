@@ -14,7 +14,6 @@ export default async function FarmerEarnings() {
     .from("notifications").select("id", { count: "exact", head: true })
     .eq("user_id", profile.id).eq("read", false);
 
-  // Payment records for this farmer, with the collection breakdown + product.
   const { data: payments } = await supabase
     .from("payment_records")
     .select("id,amount,status,created_at,collection_records(accepted_qty,unit_price,transport_deduction,other_deduction,net_amount_due,products(name))")
@@ -42,7 +41,7 @@ export default async function FarmerEarnings() {
 
   return (
     <>
-      <AppHeader name={profile.full_name} role="Farmer" unread={unread ?? 0} />
+      <AppHeader name={profile.full_name} role="Farmer" unread={unread ?? 0} userId={profile.id} />
 
       {/* Gradient header */}
       <section className="relative overflow-hidden bg-gradient-to-br from-forest to-forest-dark">
@@ -65,6 +64,13 @@ export default async function FarmerEarnings() {
       </section>
 
       <main className="mx-auto max-w-3xl space-y-4 px-4 py-8">
+        {/* Earnings breakdown chart */}
+        <div className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
+          <p className="mb-3 text-sm font-semibold text-gray-500">Earnings breakdown</p>
+          <EarningsChart paid={totalPaid} pending={totalPending} />
+        </div>
+
+        {/* Payment records */}
         {rows.length ? (
           rows.map((r) => (
             <div key={r.id} className="rounded-2xl border border-black/5 bg-white p-5 shadow-sm">
