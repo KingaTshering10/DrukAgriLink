@@ -1,27 +1,43 @@
-# DrukAgriLink
+<div align="center">
 
-**A farm-to-market coordination platform for Bhutan.** DrukAgriLink connects smallholder farmers, institutional buyers, coordinators, and transporters so that scattered harvests can be pooled to meet large orders and moved efficiently across the country — from harvest listing through matching, approval, transport, delivery, and transparent payment.
+# 🌾 DrukAgriLink
 
-🌐 **Live:** [druk-agri-link.vercel.app](https://druk-agri-link.vercel.app) · **Browse the marketplace (no login):** [/browse](https://druk-agri-link.vercel.app/browse)
+### From Bhutan's farms to the nation's tables.
 
-The architecture is deliberately simple: Next.js (App Router) with server actions talking directly to Supabase. No separate backend.
+*A full-stack platform that pools smallholder harvests, connects them to institutional buyers, and coordinates shared transport across the Dragon Kingdom — with transparent, farmer-first payments.*
+
+[![Live Demo](https://img.shields.io/badge/▶_Live_Demo-druk--agri--link-1f5c3d?style=for-the-badge)](https://druk-agri-link.vercel.app)
+[![Browse Marketplace](https://img.shields.io/badge/🛒_Browse-No_login_needed-f4a300?style=for-the-badge)](https://druk-agri-link.vercel.app/browse)
+
+![Next.js](https://img.shields.io/badge/Next.js_14-000000?style=flat&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat&logo=supabase&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![Gemini](https://img.shields.io/badge/Google_Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white)
+
+</div>
 
 ---
 
-## The problem
+## 💡 Why this exists
 
-Bhutan's farmers are small and geographically scattered, while institutional buyers (hospitals, schools, hotels, wholesalers) need large, reliable volumes of produce. Neither side can easily reach the other, and transport is fragmented. DrukAgriLink sits in the middle: coordinators pool small harvests to fulfil big orders, and shared vehicles carry the produce from farm to buyer — with every step visible to everyone involved.
+Bhutan's farmers are small and scattered; institutional buyers — hospitals, schools, hotels — need large, reliable volumes. Neither side can easily reach the other, and transport is fragmented. **DrukAgriLink is the middle layer:** coordinators pool small harvests to fill big orders, shared vehicles move the produce, and every rupee and every step is visible to everyone involved.
 
-## What it does
+Built farmer-first: **farmers always receive their full produce price** — transport is billed separately to the buyer, never skimmed from the grower.
 
-Four roles, each with its own workspace and server-side enforcement:
+## ✨ What it does
 
-- **Farmers** publish harvest listings, accept or decline allocation offers, and see their earnings.
-- **Buyers** create procurement orders, approve matches, and see a transparent cost breakdown.
-- **Coordinators** pool farmer supply to meet buyer demand, build match proposals, and assign transport.
-- **Transporters** register vehicles, receive assigned trips, update delivery status, and see their earnings.
+Four roles, four workspaces, one connected flow:
 
-### The end-to-end workflow
+| Role | What they do |
+|------|-------------|
+| 🌱 **Farmer** | List harvests, accept allocation offers, track earnings |
+| 🛒 **Buyer** | Post procurement orders, approve matches, see cost breakdowns |
+| 🔗 **Coordinator** | Pool supply to meet demand, build matches, assign transport |
+| 🚚 **Transporter** | Register vehicles, run trips, update delivery status, track pay |
+
+### The journey of a harvest
 
 ```
 Farmer lists harvest
@@ -34,90 +50,72 @@ Coordinator assigns a vehicle  ──►  Transporter delivers
                                     (assigned → accepted → collecting → in transit → delivered)
 ```
 
-At every meaningful step, the relevant parties are notified — **in real time**, with the notification badge updating live and a toast sliding in without a page refresh.
+Every step notifies the right people **in real time** — the badge ticks up and a toast slides in, no refresh needed.
 
-## Key features
+## 🚀 Highlights
 
-- **Four roles** with role-based access control and Postgres row-level security (RLS) enforcing per-user data isolation.
-- **Complete coordination workflow** from harvest listing through matching, multi-party approval, transport assignment, and delivery tracking.
-- **Real-time notifications** — live unread badge and toast popups via Supabase Realtime, delivered to all parties at each transport stage.
-- **AI help assistant** — an in-app chatbot (Google Gemini) that answers questions about how the platform works. The API key is kept server-side and calls are made from a Next.js route handler.
-- **Transparent payments model** — farmers receive their full produce price; transport is charged separately to the buyer. Every party sees their side: farmers see per-payment breakdowns (gross, deductions, net) with paid/pending status, buyers see produce + transport = total, transporters see their trip earnings.
-- **Full CRUD** on orders and harvests with ownership checks.
-- **Vehicle registration and transport assignment** — transporters register vehicles; coordinators assign an available vehicle to a confirmed order, creating a tracked shipment.
-- **Search and filter** across all four dashboards (by product, status, and location).
-- **Profile editing** with the full Bhutanese administrative hierarchy.
-- **Authoritative Bhutanese location data** — a 1,051-record Dzongkhag → Gewog → Chiwog hierarchy powers cascading location selectors for standardized geographic entry.
-- **Public marketplace page** — a secure, login-free `/browse` view of available produce and open demand, exposed through database views that reveal only non-sensitive columns.
-- **Data visualization** — an earnings breakdown chart (Recharts) and animated count-up statistics.
-- **Responsive, culturally themed UI** with subtle, accessible animations (respects `prefers-reduced-motion`) and a draggable chat widget.
+- 🔴 **Real-time notifications** — live badges + toasts via Supabase Realtime, to all parties at each stage
+- 🤖 **AI help assistant** — an in-app Gemini chatbot that explains how anything works (API key stays server-side)
+- 💰 **Transparent payments** — farmers get full price; every deduction and total shown to each party
+- 🔒 **Row-level security** — Postgres RLS isolates every user's data at the database layer
+- 🗺️ **Real Bhutan geography** — a 1,051-record Dzongkhag → Gewog → Chiwog hierarchy powers cascading selectors
+- 🛍️ **Public marketplace** — a login-free `/browse` view built on secure views that expose only safe columns
+- 📊 **Data visualization** — earnings charts (Recharts) and animated count-up stats
+- 🔍 **Search & filter** on every dashboard · ✏️ profile editing · 🎨 accessible animations (respects reduced-motion)
 
-## Technology stack
+## 🛠️ Built with
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Next.js 14 (App Router, Server Actions, Route Handlers) |
-| Language | TypeScript |
-| Database & Auth | Supabase (PostgreSQL, Auth, Row-Level Security, Realtime) |
-| Styling | Tailwind CSS |
-| Charts | Recharts |
-| AI | Google Gemini API (server-side) |
-| Icons | Lucide |
-| Deployment | Vercel (continuous deployment from GitHub) |
+**Next.js 14** (App Router · Server Actions · Route Handlers) · **TypeScript** · **Supabase** (PostgreSQL · Auth · RLS · Realtime) · **Tailwind CSS** · **Recharts** · **Google Gemini** · **Vercel** (CI/CD from GitHub)
 
-## Architecture notes
+No separate backend — the frontend talks to Supabase directly through server actions.
 
-- **Server Actions** handle all mutations (creating orders, responding to proposals, assigning transport, generating payments), keeping data logic on the server.
-- **Row-Level Security** is the primary data-isolation boundary; server actions additionally verify ownership before sensitive writes.
-- **Real-time** uses a client component subscribed to the user's own notification rows; RLS governs what the subscription is allowed to deliver.
-- **The AI assistant** runs through a server route handler (`/api/chat`) so the Gemini API key never reaches the browser; the route retries on transient errors and returns friendly messages instead of raw errors.
-- **The public marketplace** reads from dedicated database views that expose only safe columns (product, quantity, price, general location) — never farmer or buyer identities.
-- **Notifications** are written as a side effect of workflow transitions; recipient lists are de-duplicated and defensively guarded so a missing link never breaks a status update.
-- **A database trigger** creates each user's profile row on signup, so profile creation works correctly even with email confirmation enabled.
+## 🧠 Engineering notes
 
-## Requirements
+- **Server Actions** own every mutation, keeping data logic off the client.
+- **RLS** is the real security boundary; server actions also verify ownership before sensitive writes.
+- **Real-time** subscribes a client component to the user's own notification rows — RLS decides what the socket may deliver.
+- **The AI route** (`/api/chat`) keeps the Gemini key server-side, retries on transient errors, and always returns a friendly message instead of a raw error.
+- **The public marketplace** reads dedicated database *views* that never include farmer or buyer identities.
+- **A signup trigger** creates each profile row in the database, so it works even with email confirmation on.
 
-- Node.js 18+
-- A free Supabase project
-- A Google Gemini API key (free tier) for the chat assistant
-
-## Installation
+## ⚡ Run it locally
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in your values
+cp .env.example .env.local   # add your Supabase + Gemini values
 npm run dev
 ```
 
-Then open [http://localhost:3000](http://localhost:3000).
+Open [localhost:3000](http://localhost:3000).
 
-## Environment variables
+### Environment variables
 
 | Variable | Purpose |
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (safe for the browser) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (browser-safe) |
 | `GEMINI_API_KEY` | Server-only key for the AI assistant |
 
-Never commit `.env.local`. Only `.env.example` (placeholders) is tracked. On Vercel, the same variables are set under Project Settings → Environment Variables.
+`.env.local` is gitignored. On Vercel, the same variables live under **Settings → Environment Variables**.
 
-## Supabase setup
+### Supabase setup
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. Project Settings → API: copy the URL + anon key into `.env.local`.
-3. Run the SQL in `supabase/migrations/` to create tables, enums, triggers, and RLS policies.
-4. Enable Realtime on the `notifications` table.
+1. Create a project at [supabase.com](https://supabase.com) and copy the URL + anon key into `.env.local`.
+2. Run the SQL in `supabase/migrations/` to create tables, enums, triggers, and RLS policies.
+3. Enable Realtime on the `notifications` table.
 
-To try the app, register a fresh account through the sign-up page and choose a role. Currency is shown in Bhutanese Ngultrum (Nu. / BTN).
+Register a fresh account, pick a role, and explore. Prices are in Bhutanese Ngultrum (Nu. / BTN).
 
-## Roadmap
+## 🗺️ Roadmap
 
-- Ratings and reviews between parties
-- More dashboard analytics (trends over time)
-- Real payment processing and SMS/email notifications
-- Verified Dzongkha translations and an i18n switcher
-- GPS tracking and route optimization for transport
+Ratings & reviews · trends-over-time analytics · real payment processing · SMS/email notifications · verified Dzongkha translations · GPS tracking & route optimization.
 
-## Author
+---
 
-Built by **Kinga Tshering** · [GitHub](https://github.com/KingaTshering10)
+<div align="center">
+
+**Built by Kinga Tshering** · [GitHub](https://github.com/KingaTshering10)
+
+*Made with care for Bhutan's farmers. 🇧🇹*
+
+</div>
