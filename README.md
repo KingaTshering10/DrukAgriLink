@@ -41,6 +41,7 @@ At every meaningful step, the relevant parties are notified — **in real time**
 - **Four roles** with role-based access control and Postgres row-level security (RLS) enforcing per-user data isolation.
 - **Complete coordination workflow** from harvest listing through matching, multi-party approval, transport assignment, and delivery tracking.
 - **Real-time notifications** — live unread badge and toast popups via Supabase Realtime, delivered to all parties at each transport stage.
+- **AI help assistant** — an in-app chatbot (Google Gemini) that answers questions about how the platform works. The API key is kept server-side and calls are made from a Next.js route handler.
 - **Transparent payments model** — farmers receive their full produce price; transport is charged separately to the buyer. Every party sees their side: farmers see per-payment breakdowns (gross, deductions, net) with paid/pending status, buyers see produce + transport = total, transporters see their trip earnings.
 - **Full CRUD** on orders and harvests with ownership checks.
 - **Vehicle registration and transport assignment** — transporters register vehicles; coordinators assign an available vehicle to a confirmed order, creating a tracked shipment.
@@ -49,17 +50,18 @@ At every meaningful step, the relevant parties are notified — **in real time**
 - **Authoritative Bhutanese location data** — a 1,051-record Dzongkhag → Gewog → Chiwog hierarchy powers cascading location selectors for standardized geographic entry.
 - **Public marketplace page** — a secure, login-free `/browse` view of available produce and open demand, exposed through database views that reveal only non-sensitive columns.
 - **Data visualization** — an earnings breakdown chart (Recharts) and animated count-up statistics.
-- **Responsive, culturally themed UI** with subtle, accessible animations (respects `prefers-reduced-motion`).
+- **Responsive, culturally themed UI** with subtle, accessible animations (respects `prefers-reduced-motion`) and a draggable chat widget.
 
 ## Technology stack
 
 | Layer | Technology |
 |-------|-----------|
-| Framework | Next.js 14 (App Router, Server Actions) |
+| Framework | Next.js 14 (App Router, Server Actions, Route Handlers) |
 | Language | TypeScript |
 | Database & Auth | Supabase (PostgreSQL, Auth, Row-Level Security, Realtime) |
 | Styling | Tailwind CSS |
 | Charts | Recharts |
+| AI | Google Gemini API (server-side) |
 | Icons | Lucide |
 | Deployment | Vercel (continuous deployment from GitHub) |
 
@@ -68,6 +70,7 @@ At every meaningful step, the relevant parties are notified — **in real time**
 - **Server Actions** handle all mutations (creating orders, responding to proposals, assigning transport, generating payments), keeping data logic on the server.
 - **Row-Level Security** is the primary data-isolation boundary; server actions additionally verify ownership before sensitive writes.
 - **Real-time** uses a client component subscribed to the user's own notification rows; RLS governs what the subscription is allowed to deliver.
+- **The AI assistant** runs through a server route handler (`/api/chat`) so the Gemini API key never reaches the browser; the route retries on transient errors and returns friendly messages instead of raw errors.
 - **The public marketplace** reads from dedicated database views that expose only safe columns (product, quantity, price, general location) — never farmer or buyer identities.
 - **Notifications** are written as a side effect of workflow transitions; recipient lists are de-duplicated and defensively guarded so a missing link never breaks a status update.
 - **A database trigger** creates each user's profile row on signup, so profile creation works correctly even with email confirmation enabled.
@@ -76,12 +79,13 @@ At every meaningful step, the relevant parties are notified — **in real time**
 
 - Node.js 18+
 - A free Supabase project
+- A Google Gemini API key (free tier) for the chat assistant
 
 ## Installation
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in your Supabase values
+cp .env.example .env.local   # then fill in your values
 npm run dev
 ```
 
@@ -93,8 +97,9 @@ Then open [http://localhost:3000](http://localhost:3000).
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (safe for the browser) |
+| `GEMINI_API_KEY` | Server-only key for the AI assistant |
 
-Never commit `.env.local`. Only `.env.example` (placeholders) is tracked.
+Never commit `.env.local`. Only `.env.example` (placeholders) is tracked. On Vercel, the same variables are set under Project Settings → Environment Variables.
 
 ## Supabase setup
 
