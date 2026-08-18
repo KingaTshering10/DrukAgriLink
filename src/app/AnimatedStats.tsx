@@ -45,7 +45,7 @@ function Counter({ end, suffix = "", label }: { end: number; suffix?: string; la
 export function AnimatedStats() {
   return (
     <div className="grid grid-cols-3 gap-4">
-      <Counter end={850} suffix="+" label="Farmers connected" />
+      <Counter end={45} suffix="+" label="Farmers connected" />
       <Counter end={45} suffix="+" label="Institutional buyers" />
       <Counter end={120000} suffix=" kg" label="Produce moved" />
     </div>
