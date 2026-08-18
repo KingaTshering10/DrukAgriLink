@@ -47,7 +47,7 @@ export function AnimatedStats() {
     <div className="grid grid-cols-3 gap-4">
       <Counter end={45} suffix="+" label="Farmers Endorsed" />
       <Counter end={20} suffix="+" label="Institutional sellers" />
-      <Counter end={35000} suffix=" kg" label="Produce moved" />
+      <Counter end={35000} suffix=" kg" label="Produce moved abroad" />
     </div>
   );
 }
