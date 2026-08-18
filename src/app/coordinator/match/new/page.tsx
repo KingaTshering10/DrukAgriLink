@@ -29,13 +29,14 @@ export default async function NewMatch({ searchParams }: { searchParams: { order
   const o = order as any;
   const ls = (listings as any) ?? [];
 
-  // --- Run the match-suggestion algorithm ---
+  // --- Run the multi-factor match-suggestion algorithm ---
   const candidates: Candidate[] = ls.map((l: any) => ({
     listingId: l.id,
     farmerName: l.profiles?.full_name ?? "Farmer",
     availableQty: Number(l.available_qty ?? 0),
     unitPrice: Number(l.min_price ?? 0),
     dzongkhag: l.dzongkhag ?? null,
+    qualityGrade: l.quality_grade ?? null,
   }));
   const suggestion = suggestMatch(candidates, Number(o.required_qty), o.delivery_location ?? null);
 
@@ -52,11 +53,11 @@ export default async function NewMatch({ searchParams }: { searchParams: { order
         {suggestion.allocations.length > 0 && (
           <div className="mb-5 rounded-2xl border border-forest/20 bg-forest-light/40 p-5">
             <div className="mb-2 flex items-center gap-2">
-              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-forest text-white text-xs font-bold">AI</span>
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-forest text-white text-xs font-bold">✦</span>
               <h2 className="text-sm font-bold uppercase tracking-wide text-forest-dark">Suggested allocation</h2>
             </div>
             <p className="mb-3 text-xs text-gray-500">
-              Ranked by proximity to {o.delivery_location ?? "delivery"} and price. A starting point — adjust as you like.
+              Ranked by a blend of proximity to {o.delivery_location ?? "delivery"}, price, quality, and quantity. A starting point — adjust as you like.
             </p>
 
             <div className="space-y-2">
@@ -66,9 +67,14 @@ export default async function NewMatch({ searchParams }: { searchParams: { order
                     <p className="font-semibold text-forest-dark">{a.farmerName}</p>
                     <p className="text-xs text-gray-500 flex items-center gap-1">
                       {a.dzongkhag ?? "—"}
-                      {a.sameDzongkhag && (
+                      {a.proximity === 1 && (
                         <span className="inline-flex items-center gap-0.5 rounded-full bg-forest/10 px-1.5 py-0.5 text-[10px] font-semibold text-forest">
                           <MapPin size={9} /> same dzongkhag
+                        </span>
+                      )}
+                      {a.proximity === 0.5 && (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-saffron/15 px-1.5 py-0.5 text-[10px] font-semibold text-marigold">
+                          <MapPin size={9} /> nearby
                         </span>
                       )}
                     </p>
