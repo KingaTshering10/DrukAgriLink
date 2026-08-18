@@ -86,7 +86,7 @@ export default function Landing() {
       </section>
 
       <footer className="border-t border-black/5 py-8 text-center text-sm text-gray-500">
-        Developed and maintained by Kinley Rabgay · Software Developer · Prices shown as Nu. (BTN)
+        Developed and maintained by Kinley Rabgay · Software Engineer · Prices shown as Nu. (BTN)
       </footer>
     </main>
   );
