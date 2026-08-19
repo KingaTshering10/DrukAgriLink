@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { suggestMatch, type Candidate } from "./suggest";
+import { suggestMatch, type Candidate } from "@/lib/matching/suggest";
 
-// Helper to build a candidate quickly.
+// Helper to build a candidate quickly, overriding only what each test cares about.
 function farmer(over: Partial<Candidate> & { listingId: string }): Candidate {
   return {
     farmerName: "Test Farmer",
@@ -15,9 +15,7 @@ function farmer(over: Partial<Candidate> & { listingId: string }): Candidate {
 
 describe("suggestMatch", () => {
   it("fully fills an order when supply is sufficient", () => {
-    const candidates = [
-      farmer({ listingId: "a", availableQty: 300 }),
-    ];
+    const candidates = [farmer({ listingId: "a", availableQty: 300 })];
     const result = suggestMatch(candidates, 200, "Thimphu");
 
     expect(result.fullyFilled).toBe(true);
@@ -43,7 +41,6 @@ describe("suggestMatch", () => {
       farmer({ listingId: "far", dzongkhag: "Samdrup Jongkhar", availableQty: 100 }),
       farmer({ listingId: "near", dzongkhag: "Thimphu", availableQty: 100 }),
     ];
-    // Delivery is Thimphu; both same price/quality/qty, so location decides.
     const result = suggestMatch(candidates, 100, "Thimphu");
 
     expect(result.allocations[0].listingId).toBe("near");
@@ -61,10 +58,8 @@ describe("suggestMatch", () => {
   });
 
   it("recognises an adjacent dzongkhag as partial proximity", () => {
-    const candidates = [
-      // Paro is adjacent to Thimphu in the adjacency map.
-      farmer({ listingId: "adjacent", dzongkhag: "Paro", availableQty: 100 }),
-    ];
+    // Paro is adjacent to Thimphu in the adjacency map.
+    const candidates = [farmer({ listingId: "adjacent", dzongkhag: "Paro", availableQty: 100 })];
     const result = suggestMatch(candidates, 100, "Thimphu");
 
     expect(result.allocations[0].proximity).toBe(0.5);
@@ -72,6 +67,7 @@ describe("suggestMatch", () => {
 
   it("returns an empty suggestion when there are no candidates", () => {
     const result = suggestMatch([], 100, "Thimphu");
+
     expect(result.allocations).toHaveLength(0);
     expect(result.fullyFilled).toBe(false);
     expect(result.filledQty).toBe(0);
