@@ -29,7 +29,6 @@ export default async function AdminDashboard() {
     <>
       <AppHeader name={profile.full_name} role="Admin" userId={profile.id} />
 
-      {/* Gradient header */}
       <section className="relative overflow-hidden bg-gradient-to-br from-forest to-forest-dark">
         <div className="animate-floaty absolute -right-6 top-2 h-40 w-40 rounded-full bg-saffron/15 blur-3xl" />
         <div className="mx-auto max-w-5xl px-4 py-8 text-white">
@@ -40,7 +39,6 @@ export default async function AdminDashboard() {
       </section>
 
       <main className="mx-auto max-w-5xl space-y-8 px-4 py-8">
-        {/* Users by role */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-gray-500">Users by role</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -56,7 +54,6 @@ export default async function AdminDashboard() {
           </div>
         </section>
 
-        {/* Activity */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-gray-500">Platform activity</h2>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -73,7 +70,6 @@ export default async function AdminDashboard() {
           </div>
         </section>
 
-        {/* Totals */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-gray-500">Volume &amp; value moved</h2>
           <div className="grid gap-3 sm:grid-cols-2">
