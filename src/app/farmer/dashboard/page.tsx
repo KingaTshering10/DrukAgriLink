@@ -8,6 +8,7 @@ import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
 import { AllocationActions } from "@/app/farmer/AllocationActions";
 import { CountUp } from "@/components/CountUp"; 
+import { WeatherCard } from "@/components/WeatherCard";
 
 export default async function FarmerDashboard({
   searchParams,
