@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Empty } from "@/components/ui/Empty";
 import { formatNu } from "@/lib/finance/calc";
 import { AllocationActions } from "@/app/farmer/AllocationActions";
-import { CountUp } from "@/components/CountUp"; 
+import { CountUp } from "@/components/CountUp";
 import { WeatherCard } from "@/components/WeatherCard";
 
 export default async function FarmerDashboard({
@@ -99,6 +99,9 @@ export default async function FarmerDashboard({
           ))}
         </div>
 
+        {/* Local weather */}
+        <WeatherCard dzongkhag={profile.dzongkhag ?? null} />
+
         {!hasFarm && (
           <div className="card border-saffron/40 bg-saffron/10">
             <p className="font-semibold text-forest-dark">Set up your farm first</p>
@@ -107,7 +110,7 @@ export default async function FarmerDashboard({
           </div>
         )}
 
-        {/* FILTER + HARVESTS — moved to the top for visibility */}
+        {/* Filter + harvests */}
         <section>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-500">
@@ -115,7 +118,6 @@ export default async function FarmerDashboard({
             </h2>
           </div>
 
-          {/* Filter bar */}
           <form method="GET" className="card mb-3 flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1">
               <label className="label" htmlFor="product">Product</label>
@@ -161,7 +163,7 @@ export default async function FarmerDashboard({
           ) : <Empty title={hasFilter ? "No matching harvests" : "No harvests yet"} hint={hasFilter ? "Try a different filter." : "Publish your first listing to reach buyers."} />}
         </section>
 
-        {/* Match opportunities — now below harvests */}
+        {/* Match opportunities */}
         <section>
           <h2 className="mb-3 text-sm font-semibold text-gray-500">Match opportunities</h2>
           {allocations?.length ? (
