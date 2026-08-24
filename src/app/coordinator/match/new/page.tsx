@@ -97,7 +97,11 @@ export default async function NewMatch({ searchParams }: { searchParams: { order
           </div>
         )}
 
-        <MatchBuilder order={o} listings={ls} />
+        <MatchBuilder
+          order={o}
+          listings={ls}
+          suggestedLines={suggestion.allocations.map((a) => ({ listingId: a.listingId, takeQty: a.takeQty }))}
+        />
       </main>
     </>
   );
